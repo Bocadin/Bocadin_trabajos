@@ -1,31 +1,113 @@
-from backend import *
 import customtkinter as ctk
 import tkinter as tk
-from tkinter import messagebox
-from tkinter import ttk
-from tkinter import filedialog
-import shutil
-import os
 from PIL import Image
-from datetime import datetime
 
-color_principal = "#065f46"
-color_secundario_boton = "#162440"
-color_intermedio_boton = "#07E33"
-color_fondo = "#ebebe6"
-color_complementario= "#CBAC5"
-
-ctk.set_appearance_mode("Dark") 
+#==========================
+# Configuración
+#==========================
+ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("green")
 
-autenti= SistemaGestionResidentes()
+Color_fondo = "#90EE90" #no jala el color verde ligth aaaaa
+Color_boton = "#162440"
+Color_texto = "white"
 
-def limpiar_vent(vent):
-    for widget in vent.winfo_children():
-        widget.destroy()
+#==========================
+# Funciones
+#==========================
 
+def abrir_menu():
+    ventana_principal.withdraw()
+    ventana_menu.deiconify()
 
+def volver_inicio():
+    ventana_menu.withdraw()
+    ventana_principal.deiconify()
 
+def crear_boton(parent, text, command):
+    boton = ctk.CTkButton(
+        parent,
+        text=text,
+        fg_color=Color_boton,
+        text_color=Color_texto,
+        font=("Arial", 14),
+        width=250,
+        height=40,
+        corner_radius=10,
+        command=command
+    )
+    return boton
 
+#==========================
+# Ventana principal
+#==========================
 
+ventana_principal = ctk.CTk()
+ventana_principal.title("Sistema de administración de condominios")
+ventana_principal.geometry("500x400")
+ventana_principal.configure(fg_color=Color_fondo)
 
+#Imagen de fondo 
+fondo_img = ctk.CTkImage(
+    Image.open("C:/Users/fergo/Downloads/cine2/Sac1.png"),
+    size=(500, 400)
+)
+
+label_fondo = ctk.CTkLabel(
+    ventana_principal,
+    image=fondo_img,
+    text=""
+)
+label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
+
+boton_inicio = ctk.CTkButton(
+    ventana_principal,
+    text="WELCOME TO THE\nCONDOMINIUM MANAGEMENT SYSTEM",
+    fg_color=Color_boton,
+    text_color=Color_texto,
+    font=("Arial", 14),
+    width=250,
+    height=80,
+    corner_radius=15,
+    command=abrir_menu
+)
+boton_inicio.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+boton_inicio.lift()
+#==========================
+# Ventana secundaria
+#==========================
+
+ventana_menu = ctk.CTkToplevel(ventana_principal)
+ventana_menu.title("Menú")
+ventana_menu.geometry("500x400")
+ventana_menu.configure(fg_color=Color_fondo)
+ventana_menu.withdraw()
+
+#imagen
+logo = ctk.CTkImage(
+    Image.open("C:/Users/fergo/Downloads/cine2/Sac1.png"),
+    size=(150, 90)
+)
+
+label_logo2 = ctk.CTkLabel(
+    ventana_menu,
+    image=logo,
+    text=""
+)
+label_logo2.place(relx=0.5, rely=0.3, anchor="center")
+
+title = ctk.CTkLabel(
+    ventana_menu,
+    text="o",
+    text_color=Color_texto,
+    font=("Arial", 16, "bold")
+)
+title.pack(pady=70)
+
+crear_boton(ventana_menu, "1. Residente", lambda: print("Residente")).pack(pady=10)
+crear_boton(ventana_menu, "2. Administrador", lambda: print("Administrador")).pack(pady=10)
+crear_boton(ventana_menu, "3. Registro", lambda: print("Registro")).pack(pady=10)
+
+crear_boton(ventana_menu, "Volver", volver_inicio).pack(pady=10)
+
+ventana_principal.mainloop()
