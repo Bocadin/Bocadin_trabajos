@@ -1,29 +1,17 @@
-este es el frontend 
-zy
-no les deja a ustedes  holaaa soy ferchi xdd
-    ya se ven dos xddd
-    zy
-    zy
-    no pueden cambiar de ventana :(   si se puede xd yes
-    pues ya vi el fronn y el back
-    ahhh si les deja? :D
-    Siii
-    yes
-    niceeeee
-    pues ya solucionado :D 
-    ingenieros ustedes dos q resuelven :D
-    Ella lo hizo todo xddd
-    JAJ
-    A
-    JAla verdadera acarrea yo acarreo
-    VAVAVA pues a mimir 
-    Siiiii
-    Ta chido el frontend ;v
-    muchooooo, con esto un 10, ya llevamos 22 lineas tan rapido
+from backend import *
+import customtkinter as ctk
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import ttk
+from tkinter import filedialog
+import shutil
+import os
+from PIL import Image
+from datetime import datetime
 
-    A mimir
-    tengo miedo 
-    quien dijo eso q miedo aaaaa salen cosas en auto
-    si
-    aaaaa salieron muchas cosas
-    
+color_principal = "#065f46"
+color_secundario_boton = "#162440"
+color_intermedio_boton = "#07E33"
+color_fondo = "#ebebe6"
+color_complementario= "#CBAC5"
+
