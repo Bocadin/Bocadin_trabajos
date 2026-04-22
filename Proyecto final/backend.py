@@ -17,7 +17,7 @@ class SistemaGestionResidentes:
         
     def _cargar_usuarios(self):
         if not os.path.exists(self.archivo_usuarios):
-            print(f"El archivo {self.archivo_usuarios} no existe. Se creará al registrar usuarios.")
+            print(f"\nEl archivo {self.archivo_usuarios} no existe. Se creará al registrar usuarios.")
             return
         
         with open(self.archivo_usuarios, mode='r', newline='', encoding='utf-8') as archivo:

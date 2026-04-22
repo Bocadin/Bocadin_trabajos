@@ -15,3 +15,17 @@ color_intermedio_boton = "#07E33"
 color_fondo = "#ebebe6"
 color_complementario= "#CBAC5"
 
+ctk.set_appearance_mode("Dark") 
+ctk.set_default_color_theme("green")
+
+autenti= SistemaGestionResidentes()
+
+def limpiar_vent(vent):
+    for widget in vent.winfo_children():
+        widget.destroy()
+
+
+
+
+
+
