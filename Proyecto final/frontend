@@ -8,9 +8,9 @@ from PIL import Image
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("green")
 
-Color_fondo = "#90EE90" #no jala el color verde ligth aaaaa
-Color_boton = "#162440"
-Color_texto = "white"
+Color_fondo = "#E8F5EE" 
+Color_boton_oscuro = "#00695C" 
+Color_texto_oscuro = "#1B5E20"
 
 #==========================
 # Funciones
@@ -24,90 +24,181 @@ def volver_inicio():
     ventana_menu.withdraw()
     ventana_principal.deiconify()
 
+def mostrar_exito():
+    #ventana de registro
+    ventana_exito = ctk.CTkToplevel()
+    ventana_exito.title("")
+    ventana_exito.geometry("300x150")
+    ventana_exito.configure(fg_color="white")
+    ventana_exito.attributes("-topmost", True) # Que salga al frente
+
+    ctk.CTkLabel(ventana_exito, text="👤", font=("Arial", 40)).pack(pady=5)
+    ctk.CTkLabel(ventana_exito, text="Registro exitoso", font=("Arial", 16, "bold"), text_color="black").pack()
+    
+    ctk.CTkButton(ventana_exito, text="Aceptar", width=80, fg_color=Color_boton_oscuro, 
+                  command=ventana_exito.destroy).pack(pady=10)
+
+def abrir_registro():
+    ventana_menu.withdraw()
+    
+    ventana_reg = ctk.CTkToplevel(ventana_principal)
+    ventana_reg.title("Registro")
+    ventana_reg.geometry("400x550")
+    ventana_reg.configure(fg_color=Color_fondo)
+
+    # Título e Icono
+    ctk.CTkLabel(ventana_reg, text="👥 Registro", font=("Arial", 28, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
+
+    # Tipo de residente
+    ctk.CTkLabel(ventana_reg, text="Tipo de Residente:", text_color="black").pack()
+    tipo_var = ctk.StringVar(value="Propietario")
+    ctk.CTkRadioButton(ventana_reg, text="Propietario", variable=tipo_var, value="Propietario", text_color="black", hover_color=Color_boton_oscuro).pack(pady=5)
+    ctk.CTkRadioButton(ventana_reg, text="Inquilino", variable=tipo_var, value="Inquilino", text_color="black", hover_color=Color_boton_oscuro).pack(pady=5)
+
+    # Campos de entrada
+    entry_nombre = ctk.CTkEntry(ventana_reg, placeholder_text="Nombre Completo", width=300, corner_radius=20)
+    entry_nombre.pack(pady=10)
+
+    entry_correo = ctk.CTkEntry(ventana_reg, placeholder_text="Correo electrónico", width=300, corner_radius=20)
+    entry_correo.pack(pady=10)
+
+    entry_pass = ctk.CTkEntry(ventana_reg, placeholder_text="Contraseña", show="*", width=300, corner_radius=20)
+    entry_pass.pack(pady=10)
+
+    # Boton de acceso tem
+    btn_registrar = ctk.CTkButton(
+        ventana_reg, 
+        text="Acceso", 
+        fg_color=Color_boton_oscuro, 
+        corner_radius=20,
+        command=lambda: [mostrar_exito(), ventana_reg.destroy(), ventana_menu.deiconify()]
+    )
+    btn_registrar.pack(pady=30)
+
 def crear_boton(parent, text, command):
-    boton = ctk.CTkButton(
+    return ctk.CTkButton(
         parent,
         text=text,
-        fg_color=Color_boton,
-        text_color=Color_texto,
+        fg_color="#162440",
+        text_color="white",
         font=("Arial", 14),
         width=250,
         height=40,
         corner_radius=10,
         command=command
     )
-    return boton
-
 #==========================
 # Ventana principal
 #==========================
-
 ventana_principal = ctk.CTk()
-ventana_principal.title("Sistema de administración de condominios")
+ventana_principal.title("SAC - Inicio")
 ventana_principal.geometry("500x400")
-ventana_principal.configure(fg_color=Color_fondo)
 
-#Imagen de fondo 
-fondo_img = ctk.CTkImage(
-    Image.open("C:/Users/fergo/Downloads/cine2/Sac1.png"),
-    size=(500, 400)
-)
-
-label_fondo = ctk.CTkLabel(
-    ventana_principal,
-    image=fondo_img,
-    text=""
-)
-label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
+# Manejo de imagen con Try/Except xq no jalaba al inicio x lo mismo q decia el profe ahi ponen la ruta q ya saben xddddd
+try:
+    fondo_img = ctk.CTkImage(Image.open("Proyecto final/WhatsApp Image 2026-04-22 at 3.53.03 PM.jpeg"), size=(500, 400))
+    label_fondo = ctk.CTkLabel(ventana_principal, image=fondo_img, text="")
+    label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
+except:
+    ventana_principal.configure(fg_color=Color_fondo)
 
 boton_inicio = ctk.CTkButton(
     ventana_principal,
     text="WELCOME TO THE\nCONDOMINIUM MANAGEMENT SYSTEM",
-    fg_color=Color_boton,
-    text_color=Color_texto,
-    font=("Arial", 14),
-    width=250,
+    fg_color="#162440",
+    text_color="white",
+    font=("Arial", 14, "bold"),
+    width=300,
     height=80,
     corner_radius=15,
     command=abrir_menu
 )
-boton_inicio.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-boton_inicio.lift()
+boton_inicio.place(relx=0.5, rely=0.55, anchor=tk.CENTER)
+
 #==========================
 # Ventana secundaria
 #==========================
-
 ventana_menu = ctk.CTkToplevel(ventana_principal)
-ventana_menu.title("Menú")
-ventana_menu.geometry("500x400")
+ventana_menu.title("SAC - Opciones")
+ventana_menu.geometry("500x450")
 ventana_menu.configure(fg_color=Color_fondo)
 ventana_menu.withdraw()
 
-#imagen
-logo = ctk.CTkImage(
-    Image.open("C:/Users/fergo/Downloads/cine2/Sac1.png"),
-    size=(150, 90)
+# Image
+try:
+    logo_img = ctk.CTkImage(
+        Image.open("Proyecto final/logo.png"), 
+        size=(150, 70)
+    )
+    label_logo = ctk.CTkLabel(ventana_menu, image=logo_img, text="")
+    label_logo.pack(pady=(30, 10))
+except Exception as e:
+    # Si no carga, ponemos un texto o algo para que no se vea vacío xddddd 
+    ctk.CTkLabel(ventana_menu, text="SAC", font=("Arial", 40, "bold"), text_color=Color_boton_oscuro).pack(pady=20)
+    print(f"Error al cargar imagen sac11: {e}")
+
+ctk.CTkLabel(
+    ventana_menu, 
+    text="Seleccione una opción", 
+    font=("Arial", 16), 
+    text_color="black"
+).pack(pady=(0, 20))
+
+# Uso de frame
+frame_botones = ctk.CTkFrame(ventana_menu, fg_color="transparent")
+frame_botones.pack(expand=True)
+
+# Boton usuario
+btn_usuario = ctk.CTkButton(
+    frame_botones, 
+    text="Usuario", 
+    fg_color=Color_boton_oscuro, 
+    text_color="white",
+    width=320, 
+    height=45, 
+    corner_radius=20,
+    font=("Arial", 14, "bold"),
+    command=lambda: print("Ir a Login Usuario")
 )
+btn_usuario.pack(pady=10)
 
-label_logo2 = ctk.CTkLabel(
-    ventana_menu,
-    image=logo,
-    text=""
+#Boton admin
+btn_admin = ctk.CTkButton(
+    frame_botones, 
+    text="Administrador", 
+    fg_color=Color_boton_oscuro, 
+    text_color="white",
+    width=320, 
+    height=45, 
+    corner_radius=20,
+    font=("Arial", 14, "bold"),
+    command=lambda: print("Ir a Login Admin")
 )
-label_logo2.place(relx=0.5, rely=0.3, anchor="center")
+btn_admin.pack(pady=10)
 
-title = ctk.CTkLabel(
-    ventana_menu,
-    text="o",
-    text_color=Color_texto,
-    font=("Arial", 16, "bold")
+# Boton regis tempo
+btn_registro = ctk.CTkButton(
+    frame_botones, 
+    text="Registro", 
+    fg_color=Color_boton_oscuro, 
+    text_color="white",
+    width=320, 
+    height=45, 
+    corner_radius=20,
+    font=("Arial", 14, "bold"),
+    command=abrir_registro
 )
-title.pack(pady=70)
+btn_registro.pack(pady=10)
 
-crear_boton(ventana_menu, "1. Residente", lambda: print("Residente")).pack(pady=10)
-crear_boton(ventana_menu, "2. Administrador", lambda: print("Administrador")).pack(pady=10)
-crear_boton(ventana_menu, "3. Registro", lambda: print("Registro")).pack(pady=10)
-
-crear_boton(ventana_menu, "Volver", volver_inicio).pack(pady=10)
+#boton mas peque
+ctk.CTkButton(
+    ventana_menu, 
+    text="← Volver al inicio", 
+    fg_color="transparent", 
+    text_color=Color_boton_oscuro,
+    hover_color="#D1F2EB",
+    width=100,
+    command=volver_inicio
+).pack(pady=20)
 
 ventana_principal.mainloop()
