@@ -68,8 +68,8 @@ def abrir_registro():
     # Boton de acceso tem
     btn_registrar = ctk.CTkButton(
         ventana_reg, 
-        text="Acceso", 
-        fg_color=Color_boton_oscuro, 
+        text="Registrar", 
+        fg_color="#162440", 
         corner_radius=20,
         command=lambda: [mostrar_exito(), ventana_reg.destroy(), ventana_menu.deiconify()]
     )
@@ -79,7 +79,7 @@ def crear_boton(parent, text, command):
     return ctk.CTkButton(
         parent,
         text=text,
-        fg_color="#162440",
+        fg_color="#00695C",
         text_color="white",
         font=("Arial", 14),
         width=250,
@@ -93,6 +93,7 @@ def crear_boton(parent, text, command):
 ventana_principal = ctk.CTk()
 ventana_principal.title("SAC - Inicio")
 ventana_principal.geometry("500x400")
+ventana_principal.resizable(False, False)
 
 # Manejo de imagen con Try/Except xq no jalaba al inicio x lo mismo q decia el profe ahi ponen la ruta q ya saben xddddd
 try:
@@ -105,7 +106,7 @@ except:
 boton_inicio = ctk.CTkButton(
     ventana_principal,
     text="WELCOME TO THE\nCONDOMINIUM MANAGEMENT SYSTEM",
-    fg_color="#162440",
+    fg_color="#065F46",
     text_color="white",
     font=("Arial", 14, "bold"),
     width=300,
@@ -180,7 +181,7 @@ btn_admin.pack(pady=10)
 btn_registro = ctk.CTkButton(
     frame_botones, 
     text="Registro", 
-    fg_color=Color_boton_oscuro, 
+    fg_color="#60ab6f", 
     text_color="white",
     width=320, 
     height=45, 
