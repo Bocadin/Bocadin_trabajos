@@ -1,6 +1,11 @@
 import customtkinter as ctk
 import tkinter as tk
 from PIL import Image
+import os
+from backend import SistemaGestionResidentes
+
+
+sistema_back = SistemaGestionResidentes()
 
 #==========================
 # Configuración
@@ -8,13 +13,13 @@ from PIL import Image
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("green")
 
-Color_fondo = "#E8F5EE" 
-Color_boton_oscuro = "#00695C" 
+Color_fondo = "#93df8e" 
+Color_boton_oscuro = "#162440" 
 Color_texto_oscuro = "#1B5E20"
 
-#==========================
+##==========================
 # Funciones
-#==========================
+#===========================
 
 def abrir_menu():
     ventana_principal.withdraw()
@@ -25,12 +30,12 @@ def volver_inicio():
     ventana_principal.deiconify()
 
 def mostrar_exito():
-    #ventana de registro
+    # Ventana de registro
     ventana_exito = ctk.CTkToplevel()
     ventana_exito.title("")
     ventana_exito.geometry("300x150")
     ventana_exito.configure(fg_color="white")
-    ventana_exito.attributes("-topmost", True) # Que salga al frente
+    ventana_exito.attributes("-topmost", True) 
 
     ctk.CTkLabel(ventana_exito, text="👤", font=("Arial", 40)).pack(pady=5)
     ctk.CTkLabel(ventana_exito, text="Registro exitoso", font=("Arial", 16, "bold"), text_color="black").pack()
@@ -38,168 +43,321 @@ def mostrar_exito():
     ctk.CTkButton(ventana_exito, text="Aceptar", width=80, fg_color=Color_boton_oscuro, 
                   command=ventana_exito.destroy).pack(pady=10)
 
-def abrir_registro():
-    ventana_menu.withdraw()
+def abrir_panel_usuario(usuario_obj):
+# Esta es la ventana que sale cuando logras entrar
+    ventana_panel = ctk.CTkToplevel()
+    ventana_panel.title(f"Panel de {usuario_obj.nombre}")
+    ventana_panel.geometry("500x600")
+    ventana_panel.configure(fg_color=Color_fondo)
+
+    ctk.CTkLabel(ventana_panel, text=f"Bienvenido, {usuario_obj.nombre}", font=("Arial", 22, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
+
+    frame_grid = ctk.CTkFrame(ventana_panel, fg_color="transparent")
+    frame_grid.pack(expand=True, padx=20, pady=20)
+
+    # Las optiones
+    opciones = [
+        ("🔍 Consulta", lambda: print("Abriendo Consultas")),
+        ("📄 Recibos", lambda: print("Abriendo Recibos")),
+        ("💳 Pagos", lambda: print("Abriendo Pagos")),
+        ("⚠️ Reportes", lambda: print("Abriendo Reportes"))
+    ]
+
+    for texto, comando in opciones:
+        btn = ctk.CTkButton(frame_grid, text=texto, width=250, height=60, 
+                            font=("Arial", 16, "bold"), fg_color=Color_boton_oscuro, 
+                            command=comando)
+        btn.pack(pady=10)
+
+    ctk.CTkButton(ventana_panel, text="Cerrar Sesión", command=ventana_panel.destroy).pack(pady=20)
+
+def mostrar_mensaje_actualizado(ventana_padre):
+# Mensaje de confirmacion cuando cambias contraseña
+    ventana_msg = ctk.CTkToplevel()
+    ventana_msg.geometry("250x150")
+    ventana_msg.attributes("-topmost", True)
     
+    ctk.CTkLabel(ventana_msg, text="✅", font=("Arial", 40)).pack(pady=5)
+    ctk.CTkLabel(ventana_msg, text="Contraseña Actualizada", font=("Arial", 12, "bold")).pack()
+    
+    ctk.CTkButton(ventana_msg, text="Aceptar", command=lambda: [ventana_msg.destroy(), ventana_padre.destroy()]).pack(pady=10)
+
+# ===========================
+# Olvido contraseña
+# ===========================
+def abrir_olvido_pass():
+    ventana_olvido = ctk.CTkToplevel()
+    ventana_olvido.geometry("400x400")
+    ventana_olvido.title("Recuperar Cuenta")
+    ventana_olvido.configure(fg_color=Color_fondo)
+    ventana_olvido.attributes("-topmost", True)
+
+# Encabezado visual
+    ctk.CTkLabel(
+        ventana_olvido, 
+        text="Restablecer Contraseña", 
+        font=("Arial", 20, "bold"),
+        text_color=Color_texto_oscuro
+    ).pack(pady=20)
+    
+# Campo para identificar al usuario
+    ent_u = ctk.CTkEntry(
+        ventana_olvido, 
+        placeholder_text="Nombre de usuario registrado", 
+        width=280,
+        height=35,
+        corner_radius=10
+    )
+    ent_u.pack(pady=10)
+    
+# Campo para la nueva clave
+    ent_p_nueva = ctk.CTkEntry(
+        ventana_olvido, 
+        placeholder_text="Nueva Contraseña", 
+        show="*", 
+        width=280,
+        height=35,
+        corner_radius=10
+    )
+    ent_p_nueva.pack(pady=10)
+
+# Nueva logica de conexcion con el back
+    def ejecutar_actualizacion():
+        nombre_usuario = ent_u.get()
+        nueva_clave = ent_p_nueva.get()
+
+# Validacion 1: Campos obligatorios
+        if not nombre_usuario or not nueva_clave:
+            print("Error: Todos los campos deben ser completados para continuar.")
+            return
+
+# Llamada al backend para actualizar la contraseña
+        resultado_exito = sistema_back.actualizarContraseña(nombre_usuario, nueva_clave)
+
+        if resultado_exito:
+# Si el backend devolvio True, el CSV ya se guardo :D
+            print(f"Sincronización exitosa para el usuario: {nombre_usuario}")
+            mostrar_mensaje_actualizado(ventana_olvido)
+        else:
+# Si el backend devolvió False (el usuario no existe)
+            print("Error: El usuario no existe en la base de datos.")
+            
+# Boton principal de accion
+    btn_confirmar = ctk.CTkButton(
+        ventana_olvido, 
+        text="Guardar Nueva Contraseña", 
+        fg_color=Color_boton_oscuro,
+        hover_color="#004D40",
+        width=220,
+        height=45,
+        corner_radius=15,
+        font=("Arial", 13, "bold"),
+        command=ejecutar_actualizacion 
+    )
+    btn_confirmar.pack(pady=30)
+
+# Boton para cancelar
+    ctk.CTkButton(
+        ventana_olvido, 
+        text="Cancelar", 
+        fg_color="transparent", 
+        text_color="red",
+        command=ventana_olvido.destroy
+    ).pack()
+
+def abrir_login_usuario():
+# Ventana de login que conecta con el backend
+    ventana_menu.withdraw()
+    ventana_login = ctk.CTkToplevel(ventana_principal)
+    ventana_login.title("Inicio de Sesión")
+    ventana_login.geometry("400x450")
+    ventana_login.configure(fg_color=Color_fondo)
+    ventana_login.attributes("-topmost", True)
+
+    ctk.CTkLabel(ventana_login, text="🔑 Ingreso Usuario", font=("Arial", 24, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
+
+    ent_user = ctk.CTkEntry(ventana_login, placeholder_text="Nombre de Usuario", width=250)
+    ent_user.pack(pady=10)
+
+    ent_pass = ctk.CTkEntry(ventana_login, placeholder_text="Contraseña", show="*", width=250)
+    ent_pass.pack(pady=10)
+
+    def intentar_login():
+        u = ent_user.get()
+        p = ent_pass.get()
+        usuario = sistema_back.autenticar(u, p)
+        
+        if usuario:
+            ventana_login.destroy()
+            abrir_panel_usuario(usuario) 
+        else:
+            print("Error: Usuario o contraseña incorrectos")
+
+    ctk.CTkButton(ventana_login, text="Entrar", fg_color=Color_boton_oscuro, command=intentar_login).pack(pady=15)
+    ctk.CTkButton(ventana_login, text="Olvidé mi contraseña", fg_color="transparent", text_color="blue", hover=False, command=abrir_olvido_pass).pack()
+    ctk.CTkButton(ventana_login, text="Volver", command=lambda: [ventana_login.destroy(), ventana_menu.deiconify()]).pack(pady=10)
+
+def abrir_registro():
+     # Ventana de registro de nuevos usuarioos (actualizada)
+    ventana_menu.withdraw()
     ventana_reg = ctk.CTkToplevel(ventana_principal)
     ventana_reg.title("Registro")
     ventana_reg.geometry("400x550")
     ventana_reg.configure(fg_color=Color_fondo)
+    ventana_reg.attributes("-topmost", True)
 
-    # Título e Icono
     ctk.CTkLabel(ventana_reg, text="👥 Registro", font=("Arial", 28, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
 
-    # Tipo de residente
     ctk.CTkLabel(ventana_reg, text="Tipo de Residente:", text_color="black").pack()
     tipo_var = ctk.StringVar(value="Propietario")
-    ctk.CTkRadioButton(ventana_reg, text="Propietario", variable=tipo_var, value="Propietario", text_color="black", hover_color=Color_boton_oscuro).pack(pady=5)
-    ctk.CTkRadioButton(ventana_reg, text="Inquilino", variable=tipo_var, value="Inquilino", text_color="black", hover_color=Color_boton_oscuro).pack(pady=5)
+    ctk.CTkRadioButton(ventana_reg, text="Propietario", variable=tipo_var, value="Propietario", text_color="black").pack(pady=5)
+    ctk.CTkRadioButton(ventana_reg, text="Inquilino", variable=tipo_var, value="Inquilino", text_color="black").pack(pady=5)
 
-    # Campos de entrada
-    entry_nombre = ctk.CTkEntry(ventana_reg, placeholder_text="Nombre Completo", width=300, corner_radius=20)
+    entry_nombre = ctk.CTkEntry(ventana_reg, placeholder_text="Nombre Completo", width=300)
     entry_nombre.pack(pady=10)
-
-    entry_correo = ctk.CTkEntry(ventana_reg, placeholder_text="Correo electrónico", width=300, corner_radius=20)
+    entry_correo = ctk.CTkEntry(ventana_reg, placeholder_text="Correo electrónico", width=300)
     entry_correo.pack(pady=10)
-
-    entry_pass = ctk.CTkEntry(ventana_reg, placeholder_text="Contraseña", show="*", width=300, corner_radius=20)
+    entry_pass = ctk.CTkEntry(ventana_reg, placeholder_text="Contraseña", show="*", width=300)
     entry_pass.pack(pady=10)
 
-    # Boton de acceso tem
-    btn_registrar = ctk.CTkButton(
-        ventana_reg, 
-        text="Registrar", 
-        fg_color="#162440", 
-        corner_radius=20,
-        command=lambda: [mostrar_exito(), ventana_reg.destroy(), ventana_menu.deiconify()]
-    )
-    btn_registrar.pack(pady=30)
+    def ejecutar_registro():
+        nombre = entry_nombre.get()
+        password = entry_pass.get()
+        tipo = tipo_var.get()
+        if nombre == "" or password == "":
+            print("Error: Campos vacíos")
+            return
+        usuario_creado = sistema_back.registrarUsuario(nombre, tipo, password)
+        if usuario_creado:
+            mostrar_exito()
+            ventana_reg.destroy()
+            ventana_menu.deiconify()
+        else:
+            print("El usuario ya existe.")
 
-def crear_boton(parent, text, command):
-    return ctk.CTkButton(
-        parent,
-        text=text,
-        fg_color="#00695C",
-        text_color="white",
-        font=("Arial", 14),
-        width=250,
-        height=40,
-        corner_radius=10,
-        command=command
-    )
-#==========================
-# Ventana principal
-#==========================
+    ctk.CTkButton(ventana_reg, 
+                  text="Acceso", 
+                  fg_color=Color_boton_oscuro, 
+                  command=ejecutar_registro
+                  ).pack(pady=30)
+
+#==============================================
+# La configuracion de ventana de usuario xdddd
+#==============================================
+
 ventana_principal = ctk.CTk()
 ventana_principal.title("SAC - Inicio")
 ventana_principal.geometry("500x400")
 ventana_principal.resizable(False, False)
 
-# Manejo de imagen con Try/Except xq no jalaba al inicio x lo mismo q decia el profe ahi ponen la ruta q ya saben xddddd
 try:
-    fondo_img = ctk.CTkImage(Image.open("Proyecto final/WhatsApp Image 2026-04-22 at 3.53.03 PM.jpeg"), size=(500, 400))
+    fondo_img = ctk.CTkImage(Image.open("C:\\Users\\LATITUDE 5550\\OneDrive\\Documentos\\poo\\Git hub\\Bocadin_trabajos\\Proyecto final\\logosac.png"), size=(500, 400))
     label_fondo = ctk.CTkLabel(ventana_principal, image=fondo_img, text="")
     label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
 except:
     ventana_principal.configure(fg_color=Color_fondo)
 
-boton_inicio = ctk.CTkButton(
-    ventana_principal,
-    text="WELCOME TO THE\nCONDOMINIUM MANAGEMENT SYSTEM",
-    fg_color="#065F46",
-    text_color="white",
-    font=("Arial", 14, "bold"),
-    width=300,
-    height=80,
-    corner_radius=15,
-    command=abrir_menu
-)
+boton_inicio = ctk.CTkButton(ventana_principal, 
+                             text="WELCOME TO THE\nCONDOMINIUM MANAGEMENT SYSTEM", 
+                             fg_color="#162440", 
+                             text_color="white", 
+                             font=("Arial", 14, "bold"), 
+                             width=300, 
+                             height=80, 
+                             corner_radius=15, 
+                             command=abrir_menu)
 boton_inicio.place(relx=0.5, rely=0.55, anchor=tk.CENTER)
 
-#==========================
-# Ventana secundaria
-#==========================
+# Ventana secundaria (Menú de opciones)
 ventana_menu = ctk.CTkToplevel(ventana_principal)
 ventana_menu.title("SAC - Opciones")
 ventana_menu.geometry("500x450")
 ventana_menu.configure(fg_color=Color_fondo)
 ventana_menu.withdraw()
 
-# Image
 try:
-    logo_img = ctk.CTkImage(
-        Image.open("Proyecto final/logo.png"), 
-        size=(150, 70)
-    )
+    logo_img = ctk.CTkImage(Image.open("C:\\Users\\LATITUDE 5550\\OneDrive\\Documentos\\poo\\Git hub\\Bocadin_trabajos\\Proyecto final\\logo.png"), size=(150, 100))
     label_logo = ctk.CTkLabel(ventana_menu, image=logo_img, text="")
     label_logo.pack(pady=(30, 10))
-except Exception as e:
-    # Si no carga, ponemos un texto o algo para que no se vea vacío xddddd 
-    ctk.CTkLabel(ventana_menu, text="SAC", font=("Arial", 40, "bold"), text_color=Color_boton_oscuro).pack(pady=20)
-    print(f"Error al cargar imagen sac11: {e}")
+except:
+    ctk.CTkLabel(ventana_menu, 
+                 text="SAC", 
+                 font=("Arial", 40, "bold"), 
+                 text_color=Color_boton_oscuro
+                 ).pack(pady=20)
 
-ctk.CTkLabel(
-    ventana_menu, 
-    text="Seleccione una opción", 
-    font=("Arial", 16), 
-    text_color="black"
-).pack(pady=(0, 20))
+ctk.CTkLabel(ventana_menu, 
+             text="Seleccione una opción", 
+             font=("Roboto", 24), 
+             text_color="black"
+             ).pack(pady=(0, 20))
 
-# Uso de frame
 frame_botones = ctk.CTkFrame(ventana_menu, fg_color="transparent")
 frame_botones.pack(expand=True)
 
-# Boton usuario
-btn_usuario = ctk.CTkButton(
-    frame_botones, 
-    text="Usuario", 
-    fg_color=Color_boton_oscuro, 
-    text_color="white",
-    width=320, 
-    height=45, 
-    corner_radius=20,
-    font=("Arial", 14, "bold"),
-    command=lambda: print("Ir a Login Usuario")
-)
+# funcion para cargar los iconos sin tener que cambiar la ruta de las imagenes cada vez que se ejecute el proyecto en otra computadora
+def cargar_icono ( nombre_archivo):
+    try:
+        carpeta_iconos = os.path.join(os.path.dirname(__file__), "iconos")
+        ruta= os.path.join(carpeta_iconos, nombre_archivo)
+        img = Image.open(ruta)
+        return ctk.CTkImage(img, size=(30, 30))
+    except FileNotFoundError:
+        print(f"Error: El archivo '{nombre_archivo}' no se encontró en la carpeta ")
+        return None
+
+icono_usuario = cargar_icono("icono_usuario.png")
+icono_admin = cargar_icono("icono_admin.png")
+icono_registro = cargar_icono("icono_registro.png")
+
+
+
+# Botones del menu
+btn_usuario = ctk.CTkButton(frame_botones, 
+                            image=icono_usuario,
+                            text="Usuario", 
+                            fg_color=Color_boton_oscuro, 
+                            width=320, 
+                            height=45, 
+                            corner_radius=32,  
+                            compound="right",
+                            font=("Arial", 14, "bold"),                            
+                            command=abrir_login_usuario)
 btn_usuario.pack(pady=10)
 
-#Boton admin
-btn_admin = ctk.CTkButton(
-    frame_botones, 
-    text="Administrador", 
-    fg_color=Color_boton_oscuro, 
-    text_color="white",
-    width=320, 
-    height=45, 
-    corner_radius=20,
-    font=("Arial", 14, "bold"),
-    command=lambda: print("Ir a Login Admin")
-)
+btn_admin = ctk.CTkButton(frame_botones, 
+                          text="Administrador", 
+                          fg_color=Color_boton_oscuro, 
+                          width=320, 
+                          height=45, 
+                            corner_radius=32, 
+                            compound="right",
+                            font=("Arial", 14, "bold"), 
+                            image=icono_admin,
+                            command=lambda: print("Ir a Login Admin"))
 btn_admin.pack(pady=10)
 
-# Boton regis tempo
-btn_registro = ctk.CTkButton(
-    frame_botones, 
-    text="Registro", 
-    fg_color="#60ab6f", 
-    text_color="white",
-    width=320, 
-    height=45, 
-    corner_radius=20,
-    font=("Arial", 14, "bold"),
-    command=abrir_registro
-)
+btn_registro = ctk.CTkButton(frame_botones, 
+                             text="Registro", 
+                             fg_color=Color_boton_oscuro, 
+                             width=320, 
+                             height=45, 
+                             corner_radius=32, 
+                             compound="right",
+                             font=("Arial", 14, "bold"), 
+                             image=icono_registro,
+                             command=abrir_registro)
 btn_registro.pack(pady=10)
 
-#boton mas peque
+
 ctk.CTkButton(
     ventana_menu, 
     text="← Volver al inicio", 
     fg_color="transparent", 
     text_color=Color_boton_oscuro,
-    hover_color="#D1F2EB",
-    width=100,
+    hover_color="#D1F2EB", 
+    width=100, 
     command=volver_inicio
-).pack(pady=20)
+    ).pack(pady=20)
 
 ventana_principal.mainloop()
