@@ -13,9 +13,9 @@ sistema_back = SistemaGestionResidentes()
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("green")
 
-Color_fondo = "#93df8e" 
+Color_fondo = "#89cd84" 
 Color_boton_oscuro = "#162440" 
-Color_texto_oscuro = "#1B5E20"
+Color_texto_oscuro = "#134817"
 
 ##==========================
 # Funciones
@@ -174,12 +174,15 @@ def abrir_login_usuario():
     ventana_login.configure(fg_color=Color_fondo)
     ventana_login.attributes("-topmost", True)
 
-    ctk.CTkLabel(ventana_login, text="🔑 Ingreso Usuario", font=("Arial", 24, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
+    main_frame = ctk.CTkFrame(ventana_login, fg_color="#BCDFC2", corner_radius= 20, border_width=0)
+    main_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER, relwidth=0.8, relheight=0.8)
 
-    ent_user = ctk.CTkEntry(ventana_login, placeholder_text="Nombre de Usuario", width=250)
+    ctk.CTkLabel(main_frame, text="🔑 Ingreso Usuario", font=("Arial", 24, "bold"), text_color="#162440").pack(pady=20)
+    
+    ent_user = ctk.CTkEntry(main_frame, placeholder_text="Nombre de Usuario", width=250, height= 35, border_width=2, corner_radius=10)
     ent_user.pack(pady=10)
 
-    ent_pass = ctk.CTkEntry(ventana_login, placeholder_text="Contraseña", show="*", width=250)
+    ent_pass = ctk.CTkEntry(main_frame, placeholder_text="Contraseña", show="*", width=250, height= 35, border_width=2, corner_radius=10)
     ent_pass.pack(pady=10)
 
     def intentar_login():
@@ -193,9 +196,9 @@ def abrir_login_usuario():
         else:
             print("Error: Usuario o contraseña incorrectos")
 
-    ctk.CTkButton(ventana_login, text="Entrar", fg_color=Color_boton_oscuro, command=intentar_login).pack(pady=15)
-    ctk.CTkButton(ventana_login, text="Olvidé mi contraseña", fg_color="transparent", text_color="blue", hover=False, command=abrir_olvido_pass).pack()
-    ctk.CTkButton(ventana_login, text="Volver", command=lambda: [ventana_login.destroy(), ventana_menu.deiconify()]).pack(pady=10)
+    ctk.CTkButton(main_frame, text="Entrar", fg_color=Color_boton_oscuro, command=intentar_login).pack(pady=15)
+    ctk.CTkButton(main_frame, text="Olvidé mi contraseña", fg_color="transparent", text_color="blue", hover=False, command=abrir_olvido_pass).pack()
+    ctk.CTkButton(main_frame, text="Volver", command=lambda: [ventana_login.destroy(), ventana_menu.deiconify()]).pack(pady=10)
 
 def abrir_registro():
      # Ventana de registro de nuevos usuarioos (actualizada)
@@ -213,11 +216,11 @@ def abrir_registro():
     ctk.CTkRadioButton(ventana_reg, text="Propietario", variable=tipo_var, value="Propietario", text_color="black").pack(pady=5)
     ctk.CTkRadioButton(ventana_reg, text="Inquilino", variable=tipo_var, value="Inquilino", text_color="black").pack(pady=5)
 
-    entry_nombre = ctk.CTkEntry(ventana_reg, placeholder_text="Nombre Completo", width=300)
+    entry_nombre = ctk.CTkEntry(ventana_reg, placeholder_text="Nombre Completo", width=300, height=35, border_width=2, corner_radius=10)
     entry_nombre.pack(pady=10)
-    entry_correo = ctk.CTkEntry(ventana_reg, placeholder_text="Correo electrónico", width=300)
+    entry_correo = ctk.CTkEntry(ventana_reg, placeholder_text="Correo electrónico", width=300, height=35, border_width=2, corner_radius=10)
     entry_correo.pack(pady=10)
-    entry_pass = ctk.CTkEntry(ventana_reg, placeholder_text="Contraseña", show="*", width=300)
+    entry_pass = ctk.CTkEntry(ventana_reg, placeholder_text="Contraseña", show="*", width=300, height=35, border_width=2, corner_radius=10)
     entry_pass.pack(pady=10)
 
     def ejecutar_registro():
@@ -250,8 +253,13 @@ ventana_principal.title("SAC - Inicio")
 ventana_principal.geometry("500x400")
 ventana_principal.resizable(False, False)
 
+
 try:
-    fondo_img = ctk.CTkImage(Image.open("C:\\Users\\LATITUDE 5550\\OneDrive\\Documentos\\poo\\Git hub\\Bocadin_trabajos\\Proyecto final\\logosac.png"), size=(500, 400))
+    #Cargar imagen de fondo sin importar la dirección 
+    carpeta_base = os.path.dirname(__file__)
+    ruta_fondo = os.path.join(carpeta_base, "logosac.png")
+
+    fondo_img = ctk.CTkImage(Image.open(ruta_fondo), size=(500, 400))
     label_fondo = ctk.CTkLabel(ventana_principal, image=fondo_img, text="")
     label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
 except:
@@ -276,7 +284,11 @@ ventana_menu.configure(fg_color=Color_fondo)
 ventana_menu.withdraw()
 
 try:
-    logo_img = ctk.CTkImage(Image.open("C:\\Users\\LATITUDE 5550\\OneDrive\\Documentos\\poo\\Git hub\\Bocadin_trabajos\\Proyecto final\\logo.png"), size=(150, 100))
+    #Cargar imagen de fondo sin importar la dirección
+    carpeta_base = os.path.dirname(__file__)
+    ruta_logo = os.path.join(carpeta_base, "logo.png")
+
+    logo_img = ctk.CTkImage(Image.open(ruta_logo), size=(150, 100))
     label_logo = ctk.CTkLabel(ventana_menu, image=logo_img, text="")
     label_logo.pack(pady=(30, 10))
 except:

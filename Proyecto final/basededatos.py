@@ -1,14 +1,18 @@
 import csv
 import os
 
+base_direccion = os.path.dirname(__file__)
+
 def crear_archivo(nombre, encabezados):
-    if not os.path.exists(nombre):
-        with open(nombre, mode='w', newline='', encoding='utf-8') as archivo:
+    ruta = os.path.join(base_direccion, nombre)
+
+    if not os.path.exists(ruta):
+        with open(ruta, mode='w', newline='', encoding='utf-8') as archivo:
             writer = csv.writer(archivo)
             writer.writerow(encabezados)
-        print(f"{nombre} creado.")
+        print(f"{ruta} creado.")
     else:
-        print(f"{nombre} ya existe.")
+        print(f"{ruta} ya existe.")
 
 
 def crear_base_csv():
