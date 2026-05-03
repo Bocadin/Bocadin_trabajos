@@ -3,15 +3,34 @@ import os
 from datetime import datetime
 
 class Usuario:
-    def __init__(self, idUsuario, nombre, contraseña, tipoUsuario):
+    def __init__(self, idUsuario, nombre, contraseña, tipoUsuario, foto_perfil = None):
         self.idUsuario = idUsuario
         self.nombre = nombre
         self.contraseña = contraseña
         self.tipoUsuario = tipoUsuario
+        self.foto_perfil = foto_perfil
+
+    def consultar_perfil(self):
+        return {
+            "idUsuario": self.idUsuario,
+            "nombre": self.nombre,
+            "tipoUsuario": self.tipoUsuario,
+            "foto_perfil": self.foto_perfil
+        }
+    
+    def actualizar_perfil(self, nuevo_nombre=None, nueva_foto=None, nueva_contraseña=None):
+        if nuevo_nombre:
+            self.nombre = nuevo_nombre
+        if nueva_foto:
+            self.foto_perfil = nueva_foto
+        if nueva_contraseña:
+            self.contraseña = nueva_contraseña
+
 
 class SistemaGestionResidentes:
     def __init__(self):
-        self.archivo_usuarios = "usuarios.csv"
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.archivo_usuarios = os.path.join(base_dir, "usuarios.csv")
         self.usuarios = {}
         self.cargar_usuarios()
 
@@ -26,7 +45,8 @@ class SistemaGestionResidentes:
                         row['idUsuario'],
                         row['nombre'],
                         row['contraseña'],
-                        row['tipoUsuario']
+                        row['tipoUsuario'],
+                        row.get('foto_perfil', None)
                     )
                     self.usuarios[usuario.idUsuario] = usuario
         except Exception as e:
@@ -52,8 +72,8 @@ class SistemaGestionResidentes:
 
 # Verificacion de integridad
             if not archivoExiste or os.stat(self.archivo_usuarios).st_size == 0:
-                writer.writerow(['idUsuario', 'nombre', 'tipoUsuario', 'contraseña'])
-            writer.writerow([nuevo_id, nombre, tipoUsuario, contraseña])
+                writer.writerow(['idUsuario', 'nombre', 'tipoUsuario', 'contraseña', 'foto_perfil'])
+            writer.writerow([nuevo_id, nombre, tipoUsuario, contraseña, ""])
 
         print(f"Usuario {nombre} registrado con éxito en el sistema.")
         return usuario
@@ -62,7 +82,7 @@ class SistemaGestionResidentes:
         try:
             with open(self.archivo_usuarios, mode='w', newline='', encoding='utf-8') as archivo:
  
-                campos = ['idUsuario', 'nombre', 'tipoUsuario', 'contraseña']
+                campos = ['idUsuario', 'nombre', 'tipoUsuario', 'contraseña', 'foto_perfil']
                 writer = csv.DictWriter(archivo, fieldnames=campos)
                 
 # Escritura de encabezados y datos desde la memoria ram
@@ -72,7 +92,8 @@ class SistemaGestionResidentes:
                         'idUsuario': u.idUsuario,
                         'nombre': u.nombre,
                         'tipoUsuario': u.tipoUsuario,
-                        'contraseña': u.contraseña
+                        'contraseña': u.contraseña,
+                        'foto_perfil': u.foto_perfil
                     })
             return True
         except Exception as e:

@@ -2,7 +2,9 @@ import customtkinter as ctk
 import tkinter as tk
 from PIL import Image
 import os
-from backend import SistemaGestionResidentes
+import shutil
+from tkinter import filedialog
+from backend import *
 
 
 sistema_back = SistemaGestionResidentes()
@@ -23,11 +25,30 @@ Color_texto_oscuro = "#134817"
 
 def abrir_menu():
     ventana_principal.withdraw()
-    ventana_menu.deiconify()
-
+    ventana_menu.deiconify()  
+ 
+ 
 def volver_inicio():
     ventana_menu.withdraw()
     ventana_principal.deiconify()
+
+##==========================
+# Funciones de aviso y confirmacion
+#==========================
+
+def mostrar_error(mensaje):
+    ventana_error = ctk.CTkToplevel()
+    ventana_error.title("Error")
+    ventana_error.geometry("320x180")
+    ventana_error.configure(fg_color="white")
+    ventana_error.attributes("-topmost", True)
+ 
+    ctk.CTkLabel(ventana_error, text="⚠️", font=("Arial", 40)).pack(pady=5)
+    ctk.CTkLabel(ventana_error, text=mensaje, font=("Arial", 13, "bold"),
+                 text_color="red", wraplength=280).pack(pady=5)
+    ctk.CTkButton(ventana_error, text="Aceptar", width=80,
+                  fg_color=Color_boton_oscuro,
+                  command=ventana_error.destroy).pack(pady=10)
 
 def mostrar_exito():
     # Ventana de registro
@@ -42,45 +63,144 @@ def mostrar_exito():
     
     ctk.CTkButton(ventana_exito, text="Aceptar", width=80, fg_color=Color_boton_oscuro, 
                   command=ventana_exito.destroy).pack(pady=10)
+    
+def mostrar_mensaje_actualizado(ventana_padre):
+    ventana_msg = ctk.CTkToplevel()
+    ventana_msg.geometry("280x160")
+    ventana_msg.attributes("-topmost", True)
+    ventana_msg.configure(fg_color="white")
+ 
+    ctk.CTkLabel(ventana_msg, text="Actulizado Correctamente", font=("Arial", 40)).pack(pady=5)
+    ctk.CTkLabel(ventana_msg, text="Contraseña Actualizada",
+                 font=("Arial", 12, "bold")).pack()
+    ctk.CTkButton(ventana_msg, text="Aceptar",
+                  command=lambda: [ventana_msg.destroy(),
+                                   ventana_padre.destroy()]).pack(pady=10)
+
+
+
+##==========================
+# Editar perfil
+#=========================== 
+
+def editar_perfil(usuario, ventana_padre):
+    ventana_editar = ctk.CTkToplevel()
+    ventana_editar.title("Editar Perfil")
+    ventana_editar.geometry("350x350")
+    ventana_editar.configure(fg_color=Color_fondo)
+    ventana_editar.attributes("-topmost", True)
+
+    ctk.CTkLabel(ventana_editar, text="Editar Perfil", font=("Arial", 18, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
+
+    entry_nombre = ctk.CTkEntry(ventana_editar, placeholder_text="Nuevo nombre", width=280)
+    entry_nombre.pack(pady=10)
+
+    entry_pass = ctk.CTkEntry(ventana_editar, placeholder_text="Nueva contraseña", show="*", width=280)
+    entry_pass.pack(pady=10)
+
+    ruta_foto = {"path": getattr(usuario, "foto", None) or getattr(usuario, "foto_perfil", None)}
+
+    def seleccionar_foto():
+        archivo = filedialog.askopenfilename(
+            filetypes=[("Imágenes", "*.png *.jpg *.jpeg")]
+        )
+        if archivo:
+          # Carpeta donde se guardarán las fotos
+          base_dir = os.path.dirname(os.path.abspath(__file__))
+          carpeta_fotos = os.path.join(base_dir, "fotos_perfil")
+
+          # Crear carpeta si no existe
+          os.makedirs(carpeta_fotos, exist_ok=True)
+
+          # Nombre único para evitar sobrescribir
+          nombre_archivo = f"{usuario.idUsuario}_{os.path.basename(archivo)}"
+          destino = os.path.join(carpeta_fotos, nombre_archivo)
+
+          # Copiar imagen
+          shutil.copy(archivo, destino)
+
+          # Guardar nueva ruta
+          ruta_foto["path"] = destino
+
+          print("Foto guardada en:", destino)
+
+    def guardar_cambios():
+        usuario.actualizar_perfil(
+            nuevo_nombre=entry_nombre.get() or None,
+            nueva_contraseña=entry_pass.get() or None,
+            nueva_foto=ruta_foto["path"]
+        )
+        sistema_back.guardar_csv_nuevo()
+        ventana_editar.destroy()
+        ventana_padre.destroy()
+        abrir_panel_usuario(usuario)
+
+    ctk.CTkButton(ventana_editar, text="📷 Seleccionar Foto",
+                  fg_color=Color_boton_oscuro,
+                  command=seleccionar_foto).pack(pady=10)
+    ctk.CTkButton(ventana_editar, text="💾 Guardar Cambios",
+                  fg_color=Color_boton_oscuro,
+                  command=guardar_cambios).pack(pady=10)
+    ctk.CTkButton(ventana_editar, text="Cancelar",
+                  fg_color="transparent", text_color="red",
+                  command=ventana_editar.destroy).pack(pady=5)
+
+##==========================
+# Panel de Usuario
+#=========================== 
 
 def abrir_panel_usuario(usuario_obj):
 # Esta es la ventana que sale cuando logras entrar
     ventana_panel = ctk.CTkToplevel()
     ventana_panel.title(f"Panel de {usuario_obj.nombre}")
-    ventana_panel.geometry("500x600")
+    ventana_panel.geometry("700x600")
     ventana_panel.configure(fg_color=Color_fondo)
 
     ctk.CTkLabel(ventana_panel, text=f"Bienvenido, {usuario_obj.nombre}", font=("Arial", 22, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
 
-    frame_grid = ctk.CTkFrame(ventana_panel, fg_color="transparent")
-    frame_grid.pack(expand=True, padx=20, pady=20)
+    #Frame princiapl
+    main_frame = ctk.CTkFrame(ventana_panel, fg_color="transparent")
+    main_frame.pack(fill = "both", expand=True, padx=20)
+
+    #Cargar foto de perfil 
+    foto_path = getattr(usuario_obj, "foto", None) or getattr(usuario_obj, "foto_perfil", None)
+    if foto_path and os.path.exists(foto_path):
+        img = ctk.CTkImage(Image.open(foto_path), size=(100, 100))
+        lbl = ctk.CTkLabel(main_frame, image=img, text="")
+        lbl.image = img
+        lbl.pack()
+    else:
+        ctk.CTkLabel(main_frame, text="👤", font=("Arial", 80)).pack()
+
+    ctk.CTkLabel(main_frame, text=usuario_obj.nombre.upper()).pack()
+    ctk.CTkLabel(main_frame, text=usuario_obj.tipoUsuario).pack()
 
     # Las optiones
     opciones = [
-        ("🔍 Consulta", lambda: print("Abriendo Consultas")),
         ("📄 Recibos", lambda: print("Abriendo Recibos")),
         ("💳 Pagos", lambda: print("Abriendo Pagos")),
         ("⚠️ Reportes", lambda: print("Abriendo Reportes"))
     ]
 
     for texto, comando in opciones:
-        btn = ctk.CTkButton(frame_grid, text=texto, width=250, height=60, 
+        btn = ctk.CTkButton(main_frame, text=texto, width=250, height=60, 
                             font=("Arial", 16, "bold"), fg_color=Color_boton_oscuro, 
-                            command=comando)
-        btn.pack(pady=10)
+                            command=comando).pack(fill="x", pady=5)
 
-    ctk.CTkButton(ventana_panel, text="Cerrar Sesión", command=ventana_panel.destroy).pack(pady=20)
+    #Botones de editar perfil y cerrar sesion
+    btn_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+    btn_frame.pack(fill="x", pady=15, padx=10)
 
-def mostrar_mensaje_actualizado(ventana_padre):
-# Mensaje de confirmacion cuando cambias contraseña
-    ventana_msg = ctk.CTkToplevel()
-    ventana_msg.geometry("250x150")
-    ventana_msg.attributes("-topmost", True)
+    ctk.CTkButton(btn_frame, text="EDITAR PERFIL", width=140,
+                  fg_color=Color_boton_oscuro,
+                  command=lambda: editar_perfil(usuario_obj, ventana_panel)
+                  ).pack(side="left", padx=5)
+ 
+    ctk.CTkButton(btn_frame, text="CERRAR SESIÓN", width=140,
+                  fg_color="#8B0000",
+                  command=ventana_panel.destroy).pack(side="left", padx=5)
     
-    ctk.CTkLabel(ventana_msg, text="✅", font=("Arial", 40)).pack(pady=5)
-    ctk.CTkLabel(ventana_msg, text="Contraseña Actualizada", font=("Arial", 12, "bold")).pack()
-    
-    ctk.CTkButton(ventana_msg, text="Aceptar", command=lambda: [ventana_msg.destroy(), ventana_padre.destroy()]).pack(pady=10)
+
 
 # ===========================
 # Olvido contraseña
@@ -123,8 +243,8 @@ def abrir_olvido_pass():
 
 # Nueva logica de conexcion con el back
     def ejecutar_actualizacion():
-        nombre_usuario = ent_u.get()
-        nueva_clave = ent_p_nueva.get()
+        nombre_usuario = ent_u.get().strip()
+        nueva_clave    = ent_p_nueva.get().strip()
 
 # Validacion 1: Campos obligatorios
         if not nombre_usuario or not nueva_clave:
@@ -140,8 +260,8 @@ def abrir_olvido_pass():
             mostrar_mensaje_actualizado(ventana_olvido)
         else:
 # Si el backend devolvió False (el usuario no existe)
-            print("Error: El usuario no existe en la base de datos.")
-            
+            mostrar_error("El usuario no existe en la base de datos.")
+
 # Boton principal de accion
     btn_confirmar = ctk.CTkButton(
         ventana_olvido, 
@@ -168,6 +288,7 @@ def abrir_olvido_pass():
 def abrir_login_usuario():
 # Ventana de login que conecta con el backend
     ventana_menu.withdraw()
+
     ventana_login = ctk.CTkToplevel(ventana_principal)
     ventana_login.title("Inicio de Sesión")
     ventana_login.geometry("400x450")
@@ -225,6 +346,7 @@ def abrir_registro():
 
     def ejecutar_registro():
         nombre = entry_nombre.get()
+        correo= entry_correo.get()
         password = entry_pass.get()
         tipo = tipo_var.get()
         if nombre == "" or password == "":

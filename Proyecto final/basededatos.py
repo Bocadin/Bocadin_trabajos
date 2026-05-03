@@ -18,7 +18,7 @@ def crear_archivo(nombre, encabezados):
 def crear_base_csv():
     
     crear_archivo("usuarios.csv", [
-        "idUsuario", "nombre", "tipoUsuario", "contraseña"
+        "idUsuario", "nombre", "tipoUsuario", "contraseña", "foto_perfil"
     ])
 
     crear_archivo("casas.csv", [

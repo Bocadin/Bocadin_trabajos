@@ -1,1 +1,3 @@
-idUsuario,nombre,tipoUsuario,contraseña
+idUsuario,nombre,tipoUsuario,contraseña,foto_perfil
+1,Jet,Propietario,1234,"c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\1_Haluuuu, en mi insta tengo diwujitos míos y mi cuenta de edits ᨐฅ (me ayudaria un shingo su apoyo)_3.jpg"
+2,Carlitos Lettuce,Inquilino,1234,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\2_Carlitos Lechuga.jpg
