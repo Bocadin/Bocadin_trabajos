@@ -77,8 +77,6 @@ def mostrar_mensaje_actualizado(ventana_padre):
                   command=lambda: [ventana_msg.destroy(),
                                    ventana_padre.destroy()]).pack(pady=10)
 
-
-
 ##==========================
 # Editar perfil
 #=========================== 
@@ -153,28 +151,75 @@ def abrir_panel_usuario(usuario_obj):
 # Esta es la ventana que sale cuando logras entrar
     ventana_panel = ctk.CTkToplevel()
     ventana_panel.title(f"Panel de {usuario_obj.nombre}")
-    ventana_panel.geometry("700x600")
-    ventana_panel.configure(fg_color=Color_fondo)
+    ventana_panel.geometry("750x600")
+    ventana_panel.configure(fg_color= Color_fondo)
 
-    ctk.CTkLabel(ventana_panel, text=f"Bienvenido, {usuario_obj.nombre}", font=("Arial", 22, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
+    #Frame superiror 
+    frame_header= ctk.CTkFrame(ventana_panel, fg_color="transparent")
+    frame_header.pack(fill="x", padx=40, pady=(15,10))
 
+    frame_header.grid_columnconfigure(0, weight=1) # Espacio a la izquierda
+    frame_header.grid_columnconfigure(1, weight=1) # Centro
+    frame_header.grid_columnconfigure(2, weight=0) # Espacio a la derecha
+
+    container_botones = ctk.CTkFrame(frame_header, fg_color="transparent")
+    container_botones.grid(row=0, column=2, sticky="e")
+
+    ctk.CTkLabel(frame_header, text=f"Bienvenido, {usuario_obj.nombre}", font=("Arial", 30, "bold"), 
+                 text_color=Color_texto_oscuro).grid(row=0, column=0, sticky="w")
+    
     #Frame princiapl
     main_frame = ctk.CTkFrame(ventana_panel, fg_color="transparent")
-    main_frame.pack(fill = "both", expand=True, padx=20)
+    main_frame.pack(fill = "both", expand=True, padx=20, pady=2)
+    main_frame.grid_columnconfigure(0, weight=0)
+    main_frame.grid_columnconfigure(1, weight=1)
+
+    main_frame.grid_rowconfigure(0, weight=0) 
+    main_frame.grid_rowconfigure(1, weight=1)
+    
+    #Frame para foto
+    photo_frame= ctk.CTkFrame(main_frame, fg_color= "#C9E2CD")
+    photo_frame.grid(row=0, column= 0, pady=20, padx=20, sticky="nw")
+    
+    #Frame para botones
+    botones_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+    botones_frame.grid(row=1, column=0, columnspan=2, pady=(10,10), padx=20, sticky="ew")
+    
+
+    #Frame para informacion del usuario 
+    info_frame = ctk.CTkFrame(main_frame, fg_color="White")
+    info_frame.grid(row=0, column=1, pady=20, padx=20, sticky="nsew")
 
     #Cargar foto de perfil 
     foto_path = getattr(usuario_obj, "foto", None) or getattr(usuario_obj, "foto_perfil", None)
     if foto_path and os.path.exists(foto_path):
-        img = ctk.CTkImage(Image.open(foto_path), size=(100, 100))
-        lbl = ctk.CTkLabel(main_frame, image=img, text="")
+        img = ctk.CTkImage(Image.open(foto_path), size=(170, 170))
+        lbl = ctk.CTkLabel(photo_frame, image=img, text="")
         lbl.image = img
-        lbl.pack()
+        lbl.pack(padx=15, pady=15)
     else:
-        ctk.CTkLabel(main_frame, text="👤", font=("Arial", 80)).pack()
+        ctk.CTkLabel(photo_frame, text="👤", font=("Arial", 80)).pack()
 
-    ctk.CTkLabel(main_frame, text=usuario_obj.nombre.upper()).pack()
-    ctk.CTkLabel(main_frame, text=usuario_obj.tipoUsuario).pack()
+    ctk.CTkLabel(info_frame, text="Información del Residente",font=("Arial", 14, "bold"),text_color="#888888").pack(anchor="w", padx=20, pady=(15, 2))
+    ctk.CTkFrame(info_frame, height=1, fg_color="#E0E0E0").pack(fill="x", padx=15, pady=(0, 5))   
 
+    def fila_info(etiqueta, valor):
+        fila = ctk.CTkFrame(info_frame, fg_color="transparent")
+        fila.pack(fill="x", padx=20, pady=4)
+
+        ctk.CTkLabel(fila, text=etiqueta + ":", font=("Arial", 11), text_color="#999999").pack(side="left")
+
+        ctk.CTkLabel(fila, text=valor, font=("Arial", 11, "bold"), text_color=Color_texto_oscuro).pack(side="left", padx=(6, 0))
+    
+    datos = usuario_obj.consultar_perfil()
+
+    fila_info("ID",          datos["idUsuario"])
+    fila_info("Nombre",      datos["nombre"])
+    fila_info("Tipo",        datos["tipoUsuario"])
+    fila_info("Foto",        "Cargada ✅" if datos["foto_perfil"] and os.path.exists(datos["foto_perfil"]) else "Sin foto")
+
+    ctk.CTkFrame(info_frame, height=1, fg_color="#E0E0E0").pack(fill="x", padx=20, pady=(15, 0))
+    
     # Las optiones
     opciones = [
         ("📄 Recibos", lambda: print("Abriendo Recibos")),
@@ -183,20 +228,18 @@ def abrir_panel_usuario(usuario_obj):
     ]
 
     for texto, comando in opciones:
-        btn = ctk.CTkButton(main_frame, text=texto, width=250, height=60, 
+        btn = ctk.CTkButton(botones_frame, text=texto, width=250, height=60, 
                             font=("Arial", 16, "bold"), fg_color=Color_boton_oscuro, 
-                            command=comando).pack(fill="x", pady=5)
+                            command=comando).pack(fill="x", padx=25, pady=5)
 
-    #Botones de editar perfil y cerrar sesion
-    btn_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-    btn_frame.pack(fill="x", pady=15, padx=10)
 
-    ctk.CTkButton(btn_frame, text="EDITAR PERFIL", width=140,
+
+    ctk.CTkButton(container_botones, text="EDITAR PERFIL", width=140,
                   fg_color=Color_boton_oscuro,
                   command=lambda: editar_perfil(usuario_obj, ventana_panel)
                   ).pack(side="left", padx=5)
  
-    ctk.CTkButton(btn_frame, text="CERRAR SESIÓN", width=140,
+    ctk.CTkButton(container_botones, text="CERRAR SESIÓN", width=140,
                   fg_color="#8B0000",
                   command=ventana_panel.destroy).pack(side="left", padx=5)
     
