@@ -199,7 +199,8 @@ def abrir_panel_usuario(usuario_obj):
         lbl.pack(padx=15, pady=15)
     else:
         ctk.CTkLabel(photo_frame, text="👤", font=("Arial", 80)).pack()
-
+   
+    #Mostar informacion del usuario
     ctk.CTkLabel(info_frame, text="Información del Residente",font=("Arial", 14, "bold"),text_color="#888888").pack(anchor="w", padx=20, pady=(15, 2))
     ctk.CTkFrame(info_frame, height=1, fg_color="#E0E0E0").pack(fill="x", padx=15, pady=(0, 5))   
 
@@ -243,7 +244,6 @@ def abrir_panel_usuario(usuario_obj):
                   fg_color="#8B0000",
                   command=ventana_panel.destroy).pack(side="left", padx=5)
     
-
 
 # ===========================
 # Olvido contraseña
