@@ -1,3 +1,6 @@
+from tkinter import ttk
+from turtle import heading
+
 import customtkinter as ctk
 import tkinter as tk
 from PIL import Image
@@ -124,7 +127,7 @@ def editar_perfil(usuario, ventana_padre):
 
     def guardar_cambios():
         usuario.actualizar_perfil(
-            nuevo_nombre=entry_nombre.get() or None,
+            nuevo_Username=entry_nombre.get() or None,
             nueva_contraseña=entry_pass.get() or None,
             nueva_foto=ruta_foto["path"]
         )
@@ -150,8 +153,8 @@ def editar_perfil(usuario, ventana_padre):
 def abrir_panel_usuario(usuario_obj):
 # Esta es la ventana que sale cuando logras entrar
     ventana_panel = ctk.CTkToplevel()
-    ventana_panel.title(f"Panel de {usuario_obj.nombre}")
-    ventana_panel.geometry("750x600")
+    ventana_panel.title(f"Panel de {usuario_obj.Username}")
+    ventana_panel.geometry("800x600")
     ventana_panel.configure(fg_color= Color_fondo)
 
     #Frame superiror 
@@ -165,7 +168,7 @@ def abrir_panel_usuario(usuario_obj):
     container_botones = ctk.CTkFrame(frame_header, fg_color="transparent")
     container_botones.grid(row=0, column=2, sticky="e")
 
-    ctk.CTkLabel(frame_header, text=f"Bienvenido, {usuario_obj.nombre}", font=("Arial", 30, "bold"), 
+    ctk.CTkLabel(frame_header, text=f"Bienvenido, {usuario_obj.Username}", font=("Arial", 30, "bold"), 
                  text_color=Color_texto_oscuro).grid(row=0, column=0, sticky="w")
     
     #Frame princiapl
@@ -215,7 +218,7 @@ def abrir_panel_usuario(usuario_obj):
     datos = usuario_obj.consultar_perfil()
 
     fila_info("ID",          datos["idUsuario"])
-    fila_info("Nombre",      datos["nombre"])
+    fila_info("Nombre",      datos["nombre_completo"])
     fila_info("Tipo",        datos["tipoUsuario"])
     fila_info("Foto",        "Cargada ✅" if datos["foto_perfil"] and os.path.exists(datos["foto_perfil"]) else "Sin foto")
 
@@ -242,8 +245,133 @@ def abrir_panel_usuario(usuario_obj):
  
     ctk.CTkButton(container_botones, text="CERRAR SESIÓN", width=140,
                   fg_color="#8B0000",
-                  command=ventana_panel.destroy).pack(side="left", padx=5)
+                  command=lambda: (ventana_panel.destroy(), ventana_principal.deiconify())).pack(side="left", padx=5)
+
+##==========================
+# Panel de Administrador
+#===========================     
+
+def abrir_panel_admin(usuario_obj):
+    global sistema_back # <--- Esto es clave para que no explote juasujujuasas, xq exploto el mio
     
+    ventana_admin = ctk.CTkToplevel()
+    ventana_admin.title(f"SAC Admin - {usuario_obj.Username}")
+    ventana_admin.geometry("750x600")
+    ventana_admin.configure(fg_color=Color_fondo)
+
+    frame_perfil = ctk.CTkFrame(ventana_admin, 
+                                fg_color="#162440", 
+                                width=360, 
+                                corner_radius=0)
+    frame_perfil.pack(side="left", fill="y")
+
+ # para cargar la foto
+    try:
+        if os.path.exists(usuario_obj.foto_perfil):
+            img_p = ctk.CTkImage(Image.open(usuario_obj.foto_perfil), size=(140, 140))
+            ctk.CTkLabel(frame_perfil, image=img_p, text="").pack(pady=(60, 20), padx= 40)
+        else:
+            raise Exception("No existe")
+    except:
+        ctk.CTkLabel(frame_perfil, text="👤", font=("Arial", 100), text_color="white").pack(pady=(60, 20), padx= 50)
+
+    ctk.CTkLabel(frame_perfil, 
+                 text=usuario_obj.Username, 
+                 font=("Arial", 20, "bold"), 
+                 text_color="white"
+                 ).pack()
+
+    ctk.CTkLabel(frame_perfil, 
+                 text="ADMINISTRADOR", 
+                 font=("Arial", 12), 
+                 text_color="#A9A9A9"
+                 ).pack(pady=5)
+
+    # lado derecho xd
+    frame_der = ctk.CTkFrame(ventana_admin, fg_color="transparent")
+    frame_der.pack(side="right", expand=True, fill="both", padx=20)
+
+    # BARRA DE MENU 
+    barra_sup = ctk.CTkFrame(frame_der, fg_color="transparent")
+    barra_sup.pack(fill="x", pady=20)
+
+    def gestionar_opcion(seleccion):
+        if seleccion == "Cambio de nombre":
+            dialog = ctk.CTkInputDialog(text="Nuevo nombre:", title="Editar")
+            nuevo = dialog.get_input()
+            if nuevo:
+                usuario_obj.Username = nuevo
+                sistema_back.guardar_csv_nuevo()
+                ventana_admin.destroy()
+                abrir_panel_admin(usuario_obj)
+        elif seleccion == "Cambio contraseña":
+            dialog = ctk.CTkInputDialog(text="Nueva contraseña:", title="Seguridad")
+            nueva = dialog.get_input()
+            if nueva:
+                usuario_obj.contraseña = nueva
+                sistema_back.guardar_csv_nuevo()
+
+        elif seleccion == "Gestion de residentes":
+            ventana_admin.destroy()
+            abrir_gestion_residentes(usuario_obj)
+
+
+    menu_ops = ctk.CTkOptionMenu(barra_sup, 
+                                values=["Cambio de nombre", "Cambio contraseña", "Gestion de residentes", "Gestion de servicios"],
+                                command=gestionar_opcion, 
+                                fg_color=Color_boton_oscuro, 
+                                button_color=Color_boton_oscuro, 
+                                width=200)
+    
+    menu_ops.set("⚙️ Gestión")
+    menu_ops.pack(side="left")
+
+    ctk.CTkButton(barra_sup, 
+                  text="Cerrar Sesión", 
+                  fg_color="#8B0000", 
+                  width=100, 
+              command=lambda: (ventana_admin.destroy(), ventana_principal.deiconify())).pack(side="right")
+
+    info_frame = ctk.CTkFrame(frame_der, fg_color="white", corner_radius=15)
+    info_frame.pack(fill="x", pady=10)
+    
+    ctk.CTkLabel(info_frame, 
+                 text="Datos de Admin", 
+                 font=("Arial", 14, "bold"), 
+                 text_color="gray").pack(pady=10)
+    
+    ctk.CTkLabel(info_frame, 
+                 text=f"Nombre: {usuario_obj.nombre_completo}", 
+                 font=("Arial", 12)).pack()
+    
+    ctk.CTkLabel(info_frame, 
+                 text=f"ID: {usuario_obj.idUsuario}", 
+                 font=("Arial", 12)).pack()
+
+    # --- BOTONES ---
+    ctk.CTkButton(frame_der, 
+                  text="📝 Registrar consumo", 
+                  fg_color=Color_boton_oscuro, 
+                  corner_radius=12, 
+                  font=("Arial", 15, "bold"),
+                  height=55).pack(fill="x", pady=15)
+    
+    ctk.CTkButton(frame_der, 
+                  text="📊 Ver Reportes", 
+                  fg_color=Color_boton_oscuro, 
+                  corner_radius=12, 
+                  font=("Arial", 15, "bold"),
+                  height=55).pack(fill="x", pady=15)
+
+    ctk.CTkButton(frame_der, 
+        text="💰 Generar Recibo de Pago", 
+        height=55, 
+        fg_color=Color_boton_oscuro, 
+        corner_radius=12, 
+        font=("Arial", 15, "bold"),
+        command=lambda: print("Abriendo Generador de Recibos...") # Luego le ponemos su función real xdxdxdxd
+    ).pack(fill="x", pady=15)
+
 
 # ===========================
 # Olvido contraseña
@@ -354,16 +482,166 @@ def abrir_login_usuario():
         p = ent_pass.get()
         usuario = sistema_back.autenticar(u, p)
         
-        if usuario:
+        if usuario == "usuario_pendiente":
+            mostrar_error("Tu cuenta está pendiente de aprobación por el administrador")
+    
+        elif usuario:
             ventana_login.destroy()
-            abrir_panel_usuario(usuario) 
+        
+            if usuario.tipoUsuario == "admin":
+                abrir_panel_admin(usuario)
+            else:
+                abrir_panel_usuario(usuario)
+        
         else:
-            print("Error: Usuario o contraseña incorrectos")
+            mostrar_error("Usuario o contraseña incorrectos")
 
     ctk.CTkButton(main_frame, text="Entrar", fg_color=Color_boton_oscuro, command=intentar_login).pack(pady=15)
     ctk.CTkButton(main_frame, text="Olvidé mi contraseña", fg_color="transparent", text_color="blue", hover=False, command=abrir_olvido_pass).pack()
     ctk.CTkButton(main_frame, text="Volver", command=lambda: [ventana_login.destroy(), ventana_menu.deiconify()]).pack(pady=10)
 
+# ===========================
+# Ventana de menu gestion de residentes (solo admin)
+# ===========================
+
+def abrir_gestion_residentes(admin_obj):
+    ventana_gestion_users = ctk.CTkToplevel(ventana_principal)
+    ventana_gestion_users.title("SAC - Gestión de Residentes")
+    ventana_gestion_users.geometry("1200x600")
+    ventana_gestion_users.configure(fg_color=Color_fondo) 
+
+    ventana_gestion_users.grid_columnconfigure(0, weight=4)
+    ventana_gestion_users.grid_columnconfigure(1, weight=1)
+    ventana_gestion_users.grid_rowconfigure(1, weight=1)
+   
+    frame_superior = ctk.CTkFrame(ventana_gestion_users, fg_color="transparent", corner_radius=10, height=100)
+    frame_superior.grid(row=0, column=0, columnspan=2, padx=20, pady=10, sticky="nsew")
+
+    ctk.CTkLabel(frame_superior, text="Gestión de Residentes", font=("Arial", 12, "bold"), text_color=Color_texto_oscuro).place(x=20, y=10) 
+    
+    #Barra de filtro
+    entry_busqueda = ctk.CTkEntry(frame_superior, placeholder_text="Buscar por nombre o ID", width=300)
+    entry_busqueda.place(x=20, y=40)
+
+    #necesario para filtros 
+    filtros= ctk.CTkSegmentedButton(frame_superior, values=["Todos", "Propietarios", "Inquilinos"],  text_color="white")
+    filtros.set("Todos")
+    filtros.place(x=350, y=40)
+
+    #Estado de residente
+    estado_var = ctk.CTkComboBox(frame_superior, values=["Activo", "Pendiente"], text_color= Color_texto_oscuro)
+    estado_var.place(x=580, y=40)
+
+    frame_centro= ctk.CTkFrame(ventana_gestion_users, fg_color="transparent", corner_radius=10)
+    frame_centro.grid(row=1, column=0, padx=(20, 10), pady=(0,20), sticky="nsew")
+
+    ctk.CTkLabel(frame_centro, text="Lista de Residentes", font=("Arial", 14, "bold"), text_color=Color_texto_oscuro).pack(anchor="w", padx=20, pady=10)
+    
+    #CREACION DE TABLA
+    estilo= ttk.Style()
+    estilo.theme_use("classic")
+    estilo.configure("Treeview", background="#E0E0E0", fielbackground="#E0E0E0", rowheight=35)
+    estilo.map("Treeview", background=[("selected", "#196D39")])
+     
+    columnas = ("ID", "Nombre", "Tipo", "Estado")
+    tabla_residentes = ttk.Treeview(frame_centro, columns=columnas, show="headings")
+    
+    tabla_residentes.heading("ID", text="ID")
+    tabla_residentes.heading("Nombre", text="Nombre")
+    tabla_residentes.heading("Tipo", text="Tipo")
+    tabla_residentes.heading("Estado", text="Estado")
+
+    tabla_residentes.pack(expand=True, fill="both", padx=20, pady=20)
+
+    def cargar_tabla():
+        tabla_residentes.delete(*tabla_residentes.get_children())
+
+        for u in sistema_back.usuarios.values():
+            if u.tipoUsuario == "admin":
+                continue
+
+            tabla_residentes.insert("", "end", values=(
+                u.idUsuario,
+                u.Username,
+                u.tipoUsuario,
+                u.estado
+        ))
+
+    cargar_tabla()
+    
+    #informacion user
+    panel_lateral= ctk.CTkFrame(ventana_gestion_users, fg_color="White", corner_radius=10)
+    panel_lateral.grid(row=1, column=1, padx=(10, 20), pady=(0,20), sticky="nsew")
+
+    ctk.CTkLabel(panel_lateral, text="Detalles del Residente", font=("Arial", 16, "bold"), text_color=Color_texto_oscuro).pack(pady=(20,10))
+    
+    photo_frame = ctk.CTkFrame(panel_lateral, fg_color="transparent", width=160, height=160)
+    photo_frame.pack(pady=10, anchor="n")
+    photo_frame.pack_propagate(False)
+
+    def mostrar_foto(usuario):
+    # limpiar frame
+        for widget in photo_frame.winfo_children():
+            widget.destroy()
+
+        foto_path = getattr(usuario, "foto_perfil", None)
+
+        if foto_path and os.path.exists(foto_path):
+            img = ctk.CTkImage(Image.open(foto_path), size=(150, 150))
+            lbl = ctk.CTkLabel(photo_frame, image=img, text="")
+            lbl.image = img
+            lbl.pack()
+        else:
+            ctk.CTkLabel(photo_frame, text="👤", font=("Arial", 80)).pack()
+
+    def al_seleccionar(event):
+        seleccionado = tabla_residentes.selection()
+
+        if not seleccionado:
+            return
+
+        item = tabla_residentes.item(seleccionado[0])
+        id_usuario = str(item["values"][0])
+
+        if id_usuario in sistema_back.usuarios:
+            usuario = sistema_back.usuarios[id_usuario]
+            mostrar_foto(usuario)
+   
+    tabla_residentes.bind("<<TreeviewSelect>>", al_seleccionar)
+
+    #Botones de accion 
+    boton_activar= ctk.CTkButton(panel_lateral, text="Activar Residente", fg_color=Color_boton_oscuro, height=35)
+    boton_activar.pack(fill="x", padx=20, pady=10)
+
+    def activar_usuario():
+        seleccionado = tabla_residentes.selection()
+    
+        if not seleccionado:
+            print("Selecciona un usuario")
+            return
+
+        item = tabla_residentes.item(seleccionado[0])
+        id_usuario = str(item["values"][0])
+
+        if id_usuario in sistema_back.usuarios:
+           sistema_back.usuarios[id_usuario].estado = "activo"
+           sistema_back.guardar_csv_nuevo()
+           cargar_tabla()
+           print(f"Usuario {id_usuario} activado exitosamente.")
+        else:
+            print("Error: Usuario no encontrado en el sistema.")
+
+    boton_activar.configure(command=activar_usuario)
+
+    boton_reset= ctk.CTkButton(panel_lateral, text="Restablecer Contraseña", fg_color=Color_boton_oscuro, height=35)
+    boton_reset.pack(fill="x", padx=20, pady=5)
+
+    boton_eliminar= ctk.CTkButton(panel_lateral, text="Eliminar Residente", fg_color="#8B0000", hover_color="#5E0000", height=35)
+    boton_eliminar.pack(fill="x", padx=20, pady=(5,20))
+
+# ===========================
+# Ventana registro
+# ===========================
 def abrir_registro():
      # Ventana de registro de nuevos usuarioos (actualizada)
     ventana_menu.withdraw()
@@ -395,7 +673,7 @@ def abrir_registro():
         if nombre == "" or password == "":
             print("Error: Campos vacíos")
             return
-        usuario_creado = sistema_back.registrarUsuario(nombre, tipo, password)
+        usuario_creado = sistema_back.registroforAdmin(nombre, password)
         if usuario_creado:
             mostrar_exito()
             ventana_reg.destroy()
@@ -491,27 +769,25 @@ icono_registro = cargar_icono("icono_registro.png")
 
 # Botones del menu
 btn_usuario = ctk.CTkButton(frame_botones, 
-                            image=icono_usuario,
                             text="Usuario", 
                             fg_color=Color_boton_oscuro, 
                             width=320, 
                             height=45, 
                             corner_radius=32,  
                             compound="right",
-                            font=("Arial", 14, "bold"),                            
+                            font=("Arial", 14, "bold"),    
+                            image=icono_usuario,                        
                             command=abrir_login_usuario)
 btn_usuario.pack(pady=10)
 
+# En la configuración de ventana_menu
 btn_admin = ctk.CTkButton(frame_botones, 
                           text="Administrador", 
                           fg_color=Color_boton_oscuro, 
-                          width=320, 
-                          height=45, 
-                            corner_radius=32, 
-                            compound="right",
-                            font=("Arial", 14, "bold"), 
-                            image=icono_admin,
-                            command=lambda: print("Ir a Login Admin"))
+                          width=320, height=45, corner_radius=32, 
+                          font=("Arial", 14, "bold"), 
+                          image=icono_admin,
+                          command=abrir_login_usuario) # <-- Ahora lleva al login
 btn_admin.pack(pady=10)
 
 btn_registro = ctk.CTkButton(frame_botones, 
@@ -537,4 +813,8 @@ ctk.CTkButton(
     command=volver_inicio
     ).pack(pady=20)
 
-ventana_principal.mainloop()
+if __name__ == "__main__":
+    # Esto asegura que todo el proceso de python muera
+    ventana_principal.protocol("WM_DELETE_WINDOW", lambda: os._exit(0))
+    ventana_principal.mainloop()
+

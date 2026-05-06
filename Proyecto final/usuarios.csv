@@ -1,3 +1,5 @@
-idUsuario,nombre,tipoUsuario,contraseña,foto_perfil
-1,Jet,Propietario,1234,"c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\1_Haluuuu, en mi insta tengo diwujitos míos y mi cuenta de edits ᨐฅ (me ayudaria un shingo su apoyo)_3.jpg"
-2,Carlitos Lettuce,Inquilino,1234,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\2_Carlitos Lechuga.jpg
+idUsuario,Username,tipoUsuario,contraseña,nombre_completo,direccion,telefono,estado,foto_perfil
+admin,Admin SAC,admin,1234,Administrador,Oficina SAC,123456789,Activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\admin_icon.png
+1,Jet,residente,1234,Sin Nombre,Sin Dirección,Sin Teléfono,activo,"c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\1_1_Haluuuu, en mi insta tengo diwujitos míos y mi cuenta de edits ᨐฅ (me ayudaria un shingo su apoyo)_3.jpg"
+2,Carlitos Lettuce,residente,1234,Sin Nombre,Sin Dirección,Sin Teléfono,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\2_2_Carlitos Lechuga.jpg
+3,Pablito,residente,1234,Sin Nombre,Sin Dirección,Sin Teléfono,activo,admin_default.png

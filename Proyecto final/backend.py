@@ -3,24 +3,31 @@ import os
 from datetime import datetime
 
 class Usuario:
-    def __init__(self, idUsuario, nombre, contraseña, tipoUsuario, foto_perfil = None):
+    def __init__(self, idUsuario, Username, contraseña, tipoUsuario, nombre_completo, direccion, telefono, estado, foto_perfil = None):
         self.idUsuario = idUsuario
-        self.nombre = nombre
+        self.Username = Username
         self.contraseña = contraseña
         self.tipoUsuario = tipoUsuario
-        self.foto_perfil = foto_perfil
-
+        self.nombre_completo = nombre_completo if nombre_completo else "Sin Nombre"
+        self.direccion = direccion if direccion else "Sin Dirección"
+        self.telefono = telefono if telefono else "Sin Teléfono"
+        self.estado = estado if estado else "Activo"
+        self.foto_perfil = foto_perfil if foto_perfil else "admin_default.png"
+    
     def consultar_perfil(self):
         return {
             "idUsuario": self.idUsuario,
-            "nombre": self.nombre,
+            "nombre_completo": self.nombre_completo,
             "tipoUsuario": self.tipoUsuario,
+            "direccion": self.direccion,
+            "telefono": self.telefono,
             "foto_perfil": self.foto_perfil
+            
         }
     
-    def actualizar_perfil(self, nuevo_nombre=None, nueva_foto=None, nueva_contraseña=None):
-        if nuevo_nombre:
-            self.nombre = nuevo_nombre
+    def actualizar_perfil(self, nuevo_Username=None, nueva_foto=None, nueva_contraseña=None):
+        if nuevo_Username:
+            self.Username = nuevo_Username
         if nueva_foto:
             self.foto_perfil = nueva_foto
         if nueva_contraseña:
@@ -33,56 +40,66 @@ class SistemaGestionResidentes:
         self.archivo_usuarios = os.path.join(base_dir, "usuarios.csv")
         self.usuarios = {}
         self.cargar_usuarios()
+        self.asegurar_admin_default()
+
+    def asegurar_admin_default(self):
+        # Crear admin si no existe
+        if "admin" not in self.usuarios:
+            ruta_foto = ruta_foto = os.path.join(os.path.dirname(__file__), "admin_icon.png")  # para la foto
+            admin = Usuario("admin", "Admin SAC", "1234", "admin", "Administrador", "Oficina SAC", "123456789", "Activo", ruta_foto)
+            self.usuarios["admin"] = admin
+            self.guardar_csv_nuevo()
 
     def cargar_usuarios(self):
         if not os.path.exists(self.archivo_usuarios):
             return
         try:
             with open(self.archivo_usuarios, mode='r', newline='', encoding='utf-8') as archivo:
+                # Usamos DictReader para leer por nombres de columna
                 reader = csv.DictReader(archivo)
                 for row in reader:
-                    usuario = Usuario(
+                    # Creamos el objeto Usuario usando las llaves del CSV
+                    u = Usuario(
                         row['idUsuario'],
-                        row['nombre'],
+                        row['Username'],
                         row['contraseña'],
                         row['tipoUsuario'],
-                        row.get('foto_perfil', None)
+                        row.get('nombre_completo', ""),
+                        row.get('direccion', ""),
+                        row.get('telefono', ""),
+                        row.get('estado', "pendiente"),
+                        row.get('foto_perfil', "admin_default.png")
                     )
-                    self.usuarios[usuario.idUsuario] = usuario
+                    self.usuarios[u.idUsuario] = u
         except Exception as e:
-            print(f"Error al cargar usuarios desde el archivo: {e}")
+            print(f"Error al cargar usuarios: {e}")
 
-    def registrarUsuario(self, nombre, tipoUsuario, contraseña):
-
-        # Validación de duplicidad para evitar registros repetidos
+    def registroforAdmin(self, NameUser, contraseña ):
+        """
+        Función que dispara el botón de registro en el Login.
+        Crea la cuenta en estado PENDIENTE.
+        """
         for u in self.usuarios.values():
-            if u.nombre == nombre:
-                print(f"Registro fallido: El usuario '{nombre}' ya existe.")
-                return None
+            if u.Username == NameUser:
+                return "error_duplicado"
 
-# Generación de ID
-        nuevo_id = str(len(self.usuarios) + 1)
-        usuario = Usuario(nuevo_id, nombre, contraseña, tipoUsuario)
-        self.usuarios[nuevo_id] = usuario
+        ids = [int(u.idUsuario) for u in self.usuarios.values() if str(u.idUsuario).isdigit()]
+        nuevo_id = str(max(ids, default=0) + 1)
 
-# Persistencia en archivo csv
-        archivoExiste = os.path.exists(self.archivo_usuarios)
-        with open(self.archivo_usuarios, mode='a', newline='', encoding='utf-8') as archivo:
-            writer = csv.writer(archivo)
-
-# Verificacion de integridad
-            if not archivoExiste or os.stat(self.archivo_usuarios).st_size == 0:
-                writer.writerow(['idUsuario', 'nombre', 'tipoUsuario', 'contraseña', 'foto_perfil'])
-            writer.writerow([nuevo_id, nombre, tipoUsuario, contraseña, ""])
-
-        print(f"Usuario {nombre} registrado con éxito en el sistema.")
-        return usuario
+        # Se crea con los campos de información real vacíos
+        nuevo_usuario = Usuario(nuevo_id, NameUser, contraseña, "residente", "", "", "","pendiente")
+        self.usuarios[nuevo_id] = nuevo_usuario
+        
+        if self.guardar_csv_nuevo():
+            return "exito"
+        return "error_guardado"
 
     def guardar_csv_nuevo(self):
+        """Reescribe el archivo CSV con la información actual en memoria"""
         try:
             with open(self.archivo_usuarios, mode='w', newline='', encoding='utf-8') as archivo:
  
-                campos = ['idUsuario', 'nombre', 'tipoUsuario', 'contraseña', 'foto_perfil']
+                campos = ['idUsuario', 'Username', 'tipoUsuario', 'contraseña','nombre_completo', 'direccion', 'telefono', 'estado', 'foto_perfil']
                 writer = csv.DictWriter(archivo, fieldnames=campos)
                 
 # Escritura de encabezados y datos desde la memoria ram
@@ -90,9 +107,13 @@ class SistemaGestionResidentes:
                 for u in self.usuarios.values():
                     writer.writerow({
                         'idUsuario': u.idUsuario,
-                        'nombre': u.nombre,
+                        'Username': u.Username,
                         'tipoUsuario': u.tipoUsuario,
                         'contraseña': u.contraseña,
+                        'nombre_completo': u.nombre_completo,
+                        'direccion': u.direccion,
+                        'telefono': u.telefono,
+                        'estado': u.estado,
                         'foto_perfil': u.foto_perfil
                     })
             return True
@@ -100,57 +121,69 @@ class SistemaGestionResidentes:
             print(f"Error al sincronizar base de datos: {e}")
             return False
 
-# Actuzlizacion de contraseña
-    def actualizarContraseña(self, nombre_usuario, nueva_contraseña):
-        usuario_encontrado = False
-        
-# Iteración sobre los usuarios cargados
+    def actualizarContraseña(self, nombre_username, nueva_contraseña):
         for u in self.usuarios.values():
-            if u.nombre == nombre_usuario:
-# Actualización del atributo en el objeto
+            if u.Username == nombre_username:
                 u.contraseña = nueva_contraseña
-                usuario_encontrado = True
-                break
-        
-# Si hubo un cambio exitoso, reescribimos el archivo csv
-        if usuario_encontrado:
-            return self.guardar_csv_nuevo()
-        
-        print("El usuario no fue localizado para el cambio de clave.")
+                return self.guardar_csv_nuevo()
         return False
-# Fin de funciiom agrega
 
     def eliminarUsuario(self, idUsuario):
         if idUsuario in self.usuarios:
             del self.usuarios[idUsuario]
             self.guardar_csv_nuevo()
-            print(f"Usuario con ID {idUsuario} ha sido removido.")
+            print(f"Usuario con ID {idUsuario} eliminado.")
         else:
-            print("El ID proporcionado no coincide con ningún usuario activo.")
+            print("El ID no existe.")
 
-    def autenticar(self, nombre, contraseña):
+    def autenticar(self, nombre, contraseña):   
+        #Retorna el objeto usuario si es válido.
         for usuario in self.usuarios.values():
-            if usuario.nombre == nombre and usuario.contraseña == contraseña:
+            if usuario.Username == nombre and usuario.contraseña == contraseña:
+                if usuario.estado == "pendiente":
+                    return "usuario_pendiente"
                 return usuario
         return None
 
-    def iniciar_sesion(self, nombre, contraseña):
-        usuario = self.autenticar(nombre, contraseña)
-        if usuario:
-            print(f"Acceso concedido: Bienvenido {usuario.nombre} ({usuario.tipoUsuario})")
-            return usuario
-        else:
-            print("Acceso denegado: Credenciales inválidas.")
-        return None
-
 class Residente (Usuario):
-    def __init__(self, idUsuario, nombre, contraseña, tipoResidente):
-        super().__init__(idUsuario, nombre, contraseña, "residente")
+    def __init__(self,tipoResidente, idUsuario, Username, contraseña, tipoUsuario, nombre_completo, direccion, telefono, estado):
+        super().__init__(idUsuario, Username, contraseña, "residente", nombre_completo, direccion, telefono, estado)
         self.tipoResidente = tipoResidente
+
+    def consultar_consumos(self, lista_consumos):
+        return [c for c in lista_consumos if c.casa.inquilino == self or c.casa.propietario == self]
+    
+    def ver_Recibos(self):
+        return self.recibos 
+    
+    def reportar_falla(self, idReporte, descripción):
+        return Reporte(idReporte, self, descripción)
+    
+    def pago_servicio(self, recibo, idPago):
+        if recibo.estado =="pendiente":
+            pago = Pago (idPago, recibo)
+            recibo.marcar_pagado()
+            return pago
+        return None
 
 class Administrador(Usuario):
     def __init__(self, idUsuario, nombre, contraseña):
         super().__init__(idUsuario, nombre, contraseña, "admin")
+
+    def activar_usuario(self, sistema, id_usuario, nombre_real, direccion, telefono):
+        #El Admin usa esta función para 'Enlazar' la cuenta con datos reales.
+
+        if id_usuario in sistema.usuarios:
+            user = sistema.usuarios[id_usuario]
+            user.nombre_completo = nombre_real
+            user.direccion = direccion
+            user.telefono = telefono
+            user.estado = "activo" # Aquí se le da acceso total
+            
+            sistema.guardar_csv_nuevo()
+            return True
+        return False
+
 
 class Casa():
     def __init__(self, idCasa, numero):
