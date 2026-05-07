@@ -11,7 +11,7 @@ class Usuario:
         self.nombre_completo = nombre_completo if nombre_completo else "Sin Nombre"
         self.direccion = direccion if direccion else "Sin Dirección"
         self.telefono = telefono if telefono else "Sin Teléfono"
-        self.estado = estado if estado else "Activo"
+        self.estado = estado.lower() if estado else "Pendiente"
         self.foto_perfil = foto_perfil if foto_perfil else "admin_default.png"
     
     def consultar_perfil(self):
