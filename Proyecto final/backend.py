@@ -11,7 +11,7 @@ class Usuario:
         self.nombre_completo = nombre_completo if nombre_completo else "Sin Nombre"
         self.direccion = direccion if direccion else "Sin Dirección"
         self.telefono = telefono if telefono else "Sin Teléfono"
-        self.estado = estado.lower() if estado else "Pendiente"
+        self.estado = estado.lower() if estado else "pendiente"
         self.foto_perfil = foto_perfil if foto_perfil else "admin_default.png"
     
     def consultar_perfil(self):
@@ -46,7 +46,7 @@ class SistemaGestionResidentes:
         # Crear admin si no existe
         if "admin" not in self.usuarios:
             ruta_foto = ruta_foto = os.path.join(os.path.dirname(__file__), "admin_icon.png")  # para la foto
-            admin = Usuario("admin", "Admin SAC", "1234", "admin", "Administrador", "Oficina SAC", "123456789", "Activo", ruta_foto)
+            admin = Usuario("admin", "Admin SAC", "1234", "admin", "Administrador", "Oficina SAC", "123456789", "activo", ruta_foto)
             self.usuarios["admin"] = admin
             self.guardar_csv_nuevo()
 
@@ -74,7 +74,7 @@ class SistemaGestionResidentes:
         except Exception as e:
             print(f"Error al cargar usuarios: {e}")
 
-    def registroforAdmin(self, NameUser, contraseña ):
+    def registroforAdmin(self, NameUser, contraseña, tipoUsuario ):
         """
         Función que dispara el botón de registro en el Login.
         Crea la cuenta en estado PENDIENTE.
@@ -87,7 +87,7 @@ class SistemaGestionResidentes:
         nuevo_id = str(max(ids, default=0) + 1)
 
         # Se crea con los campos de información real vacíos
-        nuevo_usuario = Usuario(nuevo_id, NameUser, contraseña, "residente", "", "", "","pendiente")
+        nuevo_usuario = Usuario(nuevo_id, NameUser, contraseña, tipoUsuario, "", "", "","pendiente")
         self.usuarios[nuevo_id] = nuevo_usuario
         
         if self.guardar_csv_nuevo():

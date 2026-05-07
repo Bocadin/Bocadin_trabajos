@@ -1,8 +1,6 @@
 idUsuario,Username,tipoUsuario,contraseña,nombre_completo,direccion,telefono,estado,foto_perfil
 admin,Admin SAC,admin,1234,Administrador,Oficina SAC,123456789,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\admin_icon.png
-1,Jet,residente,1234,Jet C,Calle las nieves #58,123456789,activo,"c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\1_1_Haluuuu, en mi insta tengo diwujitos míos y mi cuenta de edits ᨐฅ (me ayudaria un shingo su apoyo)_3.jpg"
-2,Carlitos Lettuce,residente,1234,Sin Nombre,Sin Dirección,Sin Teléfono,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\2_2_Carlitos Lechuga.jpg
-3,Pablito,residente,1234,Pablo,12344,123445,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\3_Cute ginger kitten pfp.jpg
-4,Pablito ,residente,1234,Sin Nombre,Sin Dirección,Sin Teléfono,pendiente,admin_default.png
-5,Pablita ,residente,1234,Sin Nombre,Sin Dirección,Sin Teléfono,pendiente,admin_default.png
-6,Pablita,residente,1234,Sin Nombre,Sin Dirección,Sin Teléfono,pendiente,admin_default.png
+1,Jet,Propietario,1234,Jet C,Calle las nieves #58,123456789,activo,"c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\1_1_Haluuuu, en mi insta tengo diwujitos míos y mi cuenta de edits ᨐฅ (me ayudaria un shingo su apoyo)_3.jpg"
+2,Carlitos Lettuce,Inquilino,1234,Carlitos Lechuga,Calle de carlitos,12543223,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\2_2_Carlitos Lechuga.jpg
+3,Pablito,Propietario,1234,Pablo Juan,Calle Residencia,1234654,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\3_Cute ginger kitten pfp.jpg
+4,Pablita,Propietario,1234,Pablita Carla,Calle de Pablita,12343214,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\4_⊹　 ︶︶　 ୨୧　 ︶︶　 ⊹_                ८    White angel bunny !!   ꔫა _               Pfp ♡   Icon !!.jpg

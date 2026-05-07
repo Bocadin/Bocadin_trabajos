@@ -531,8 +531,9 @@ def abrir_gestion_residentes(admin_obj):
     filtros.place(x=350, y=40)
 
     #Estado de residente
-    estado_var = ctk.CTkComboBox(frame_superior, values=["Activo", "Pendiente"], text_color= Color_texto_oscuro)
+    estado_var = ctk.CTkComboBox(frame_superior, values=["Todos","Activo", "Pendiente"], text_color= Color_texto_oscuro)
     estado_var.place(x=580, y=40)
+    estado_var.set ("Todos")
 
     frame_centro= ctk.CTkFrame(ventana_gestion_users, fg_color="transparent", corner_radius=10)
     frame_centro.grid(row=1, column=0, padx=(20, 10), pady=(0,20), sticky="nsew")
@@ -576,7 +577,7 @@ def abrir_gestion_residentes(admin_obj):
                 if tipo_filtro == "Inquilinos" and u.tipoUsuario != "Inquilino":
                     continue
 
-            if estado_filtro:
+            if estado_filtro != "Todos":
                 if u.estado.lower() != estado_filtro.lower():
                     continue
 
@@ -679,7 +680,7 @@ def abrir_gestion_residentes(admin_obj):
 
         entry_telefono = ctk.CTkEntry(ventana_form, placeholder_text="Teléfono")
         entry_telefono.pack(pady=10)
-
+        
         def guardar():
             usuario.nombre_completo = entry_nombre.get()
             usuario.direccion = entry_direccion.get()
@@ -781,7 +782,7 @@ def abrir_registro():
         if nombre == "" or password == "":
             print("Error: Campos vacíos")
             return
-        usuario_creado = sistema_back.registroforAdmin(nombre, password)
+        usuario_creado = sistema_back.registroforAdmin(nombre, password, tipo)
         if usuario_creado:
             mostrar_exito()
             ventana_reg.destroy()
