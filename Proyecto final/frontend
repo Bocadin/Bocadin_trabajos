@@ -1,5 +1,4 @@
 from tkinter import ttk
-from turtle import heading
 import customtkinter as ctk
 import tkinter as tk
 from PIL import Image
@@ -17,8 +16,8 @@ sistema_back = SistemaGestionResidentes()
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("green")
 
-Color_fondo = "#89cd84" 
-Color_boton_oscuro = "#162440" 
+Color_fondo = "#89cd84"
+Color_boton_oscuro = "#162440"
 Color_texto_oscuro = "#134817"
 
 ##==========================
@@ -27,9 +26,9 @@ Color_texto_oscuro = "#134817"
 
 def abrir_menu():
     ventana_principal.withdraw()
-    ventana_menu.deiconify()  
- 
- 
+    ventana_menu.deiconify()
+
+
 def volver_inicio():
     ventana_menu.withdraw()
     ventana_principal.deiconify()
@@ -44,7 +43,7 @@ def mostrar_error(mensaje):
     ventana_error.geometry("320x180")
     ventana_error.configure(fg_color="white")
     ventana_error.attributes("-topmost", True)
- 
+
     ctk.CTkLabel(ventana_error, text="⚠️", font=("Arial", 40)).pack(pady=5)
     ctk.CTkLabel(ventana_error, text=mensaje, font=("Arial", 13, "bold"),
                  text_color="red", wraplength=280).pack(pady=5)
@@ -53,26 +52,25 @@ def mostrar_error(mensaje):
                   command=ventana_error.destroy).pack(pady=10)
 
 def mostrar_exito():
-    # Ventana de registro
     ventana_exito = ctk.CTkToplevel()
     ventana_exito.title("")
     ventana_exito.geometry("300x150")
     ventana_exito.configure(fg_color="white")
-    ventana_exito.attributes("-topmost", True) 
+    ventana_exito.attributes("-topmost", True)
 
     ctk.CTkLabel(ventana_exito, text="👤", font=("Arial", 40)).pack(pady=5)
     ctk.CTkLabel(ventana_exito, text="Registro exitoso", font=("Arial", 16, "bold"), text_color="black").pack()
-    
-    ctk.CTkButton(ventana_exito, text="Aceptar", width=80, fg_color=Color_boton_oscuro, 
+
+    ctk.CTkButton(ventana_exito, text="Aceptar", width=80, fg_color=Color_boton_oscuro,
                   command=ventana_exito.destroy).pack(pady=10)
-    
+
 def mostrar_mensaje_actualizado(ventana_padre):
     ventana_msg = ctk.CTkToplevel()
     ventana_msg.geometry("280x160")
     ventana_msg.attributes("-topmost", True)
     ventana_msg.configure(fg_color="white")
- 
-    ctk.CTkLabel(ventana_msg, text="Actulizado Correctamente", font=("Arial", 40)).pack(pady=5)
+
+    ctk.CTkLabel(ventana_msg, text="Actualizado Correctamente", font=("Arial", 40)).pack(pady=5)
     ctk.CTkLabel(ventana_msg, text="Contraseña Actualizada",
                  font=("Arial", 12, "bold")).pack()
     ctk.CTkButton(ventana_msg, text="Aceptar",
@@ -81,7 +79,7 @@ def mostrar_mensaje_actualizado(ventana_padre):
 
 ##==========================
 # Editar perfil
-#=========================== 
+#===========================
 
 def editar_perfil(usuario, ventana_padre):
     ventana_editar = ctk.CTkToplevel()
@@ -105,24 +103,23 @@ def editar_perfil(usuario, ventana_padre):
             filetypes=[("Imágenes", "*.png *.jpg *.jpeg")]
         )
         if archivo:
-          # Carpeta donde se guardarán las fotos
-          base_dir = os.path.dirname(os.path.abspath(__file__))
-          carpeta_fotos = os.path.join(base_dir, "fotos_perfil")
+            #Carpeta donde se guardarán las fotos 
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            carpeta_fotos = os.path.join(base_dir, "fotos_perfil")
 
-          # Crear carpeta si no existe
-          os.makedirs(carpeta_fotos, exist_ok=True)
+            #Crear carpeta si no existe 
+            os.makedirs(carpeta_fotos, exist_ok=True)
 
-          # Nombre único para evitar sobrescribir
-          nombre_archivo = f"{usuario.idUsuario}_{os.path.basename(archivo)}"
-          destino = os.path.join(carpeta_fotos, nombre_archivo)
+            #Nombre único para evitar sobreescribir 
+            nombre_archivo = f"{usuario.idUsuario}_{os.path.basename(archivo)}"
+            destino = os.path.join(carpeta_fotos, nombre_archivo)
 
-          # Copiar imagen
-          shutil.copy(archivo, destino)
+            #Copiar imagen 
+            shutil.copy(archivo, destino)
 
-          # Guardar nueva ruta
-          ruta_foto["path"] = destino
-
-          print("Foto guardada en:", destino)
+            #Guardar nueva ruta 
+            ruta_foto["path"] = destino
+            print("Foto guardada en:", destino)
 
     def guardar_cambios():
         usuario.actualizar_perfil(
@@ -147,52 +144,50 @@ def editar_perfil(usuario, ventana_padre):
 
 ##==========================
 # Panel de Usuario
-#=========================== 
+#===========================
 
 def abrir_panel_usuario(usuario_obj):
-# Esta es la ventana que sale cuando logras entrar
+    #Esta es la ventana que sale cunado logras entrar para usuario
     ventana_panel = ctk.CTkToplevel()
     ventana_panel.title(f"Panel de {usuario_obj.Username}")
     ventana_panel.geometry("800x600")
-    ventana_panel.configure(fg_color= Color_fondo)
+    ventana_panel.configure(fg_color=Color_fondo)
 
-    #Frame superiror 
-    frame_header= ctk.CTkFrame(ventana_panel, fg_color="transparent")
-    frame_header.pack(fill="x", padx=40, pady=(15,10))
+    # Frame superior
+    frame_header = ctk.CTkFrame(ventana_panel, fg_color="transparent")
+    frame_header.pack(fill="x", padx=40, pady=(15, 10))
 
-    frame_header.grid_columnconfigure(0, weight=1) # Espacio a la izquierda
-    frame_header.grid_columnconfigure(1, weight=1) # Centro
-    frame_header.grid_columnconfigure(2, weight=0) # Espacio a la derecha
+    frame_header.grid_columnconfigure(0, weight=1)
+    frame_header.grid_columnconfigure(1, weight=1)
+    frame_header.grid_columnconfigure(2, weight=0)
 
     container_botones = ctk.CTkFrame(frame_header, fg_color="transparent")
     container_botones.grid(row=0, column=2, sticky="e")
 
-    ctk.CTkLabel(frame_header, text=f"Bienvenido, {usuario_obj.Username}", font=("Arial", 30, "bold"), 
+    ctk.CTkLabel(frame_header, text=f"Bienvenido, {usuario_obj.Username}", font=("Arial", 30, "bold"),
                  text_color=Color_texto_oscuro).grid(row=0, column=0, sticky="w")
-    
-    #Frame princiapl
+
+    # Frame principal
     main_frame = ctk.CTkFrame(ventana_panel, fg_color="transparent")
-    main_frame.pack(fill = "both", expand=True, padx=20, pady=2)
+    main_frame.pack(fill="both", expand=True, padx=20, pady=2)
     main_frame.grid_columnconfigure(0, weight=0)
     main_frame.grid_columnconfigure(1, weight=1)
-
-    main_frame.grid_rowconfigure(0, weight=0) 
+    main_frame.grid_rowconfigure(0, weight=0)
     main_frame.grid_rowconfigure(1, weight=1)
-    
-    #Frame para foto
-    photo_frame= ctk.CTkFrame(main_frame, fg_color= "#C9E2CD")
-    photo_frame.grid(row=0, column= 0, pady=20, padx=20, sticky="nw")
-    
-    #Frame para botones
-    botones_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-    botones_frame.grid(row=1, column=0, columnspan=2, pady=(10,10), padx=20, sticky="ew")
-    
 
-    #Frame para informacion del usuario 
+    # Frame para foto
+    photo_frame = ctk.CTkFrame(main_frame, fg_color="#C9E2CD")
+    photo_frame.grid(row=0, column=0, pady=20, padx=20, sticky="nw")
+
+    # Frame para botones
+    botones_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+    botones_frame.grid(row=1, column=0, columnspan=2, pady=(10, 10), padx=20, sticky="ew")
+
+    # Frame para información del usuario
     info_frame = ctk.CTkFrame(main_frame, fg_color="White")
     info_frame.grid(row=0, column=1, pady=20, padx=20, sticky="nsew")
 
-    #Cargar foto de perfil 
+    # Cargar foto de perfil
     foto_path = getattr(usuario_obj, "foto", None) or getattr(usuario_obj, "foto_perfil", None)
     if foto_path and os.path.exists(foto_path):
         img = ctk.CTkImage(Image.open(foto_path), size=(170, 170))
@@ -201,95 +196,553 @@ def abrir_panel_usuario(usuario_obj):
         lbl.pack(padx=15, pady=15)
     else:
         ctk.CTkLabel(photo_frame, text="👤", font=("Arial", 80)).pack()
-   
-    #Mostar informacion del usuario
-    ctk.CTkLabel(info_frame, text="Información del Residente",font=("Arial", 14, "bold"),text_color="#888888").pack(anchor="w", padx=20, pady=(15, 2))
-    ctk.CTkFrame(info_frame, height=1, fg_color="#E0E0E0").pack(fill="x", padx=15, pady=(0, 5))   
+
+    # Mostrar información del usuario
+    ctk.CTkLabel(info_frame, text="Información del Residente", font=("Arial", 14, "bold"), text_color="#888888").pack(anchor="w", padx=20, pady=(15, 2))
+    ctk.CTkFrame(info_frame, height=1, fg_color="#E0E0E0").pack(fill="x", padx=15, pady=(0, 5))
 
     def fila_info(etiqueta, valor):
         fila = ctk.CTkFrame(info_frame, fg_color="transparent")
         fila.pack(fill="x", padx=20, pady=4)
-
         ctk.CTkLabel(fila, text=etiqueta + ":", font=("Arial", 11), text_color="#999999").pack(side="left")
-
         ctk.CTkLabel(fila, text=valor, font=("Arial", 11, "bold"), text_color=Color_texto_oscuro).pack(side="left", padx=(6, 0))
-    
+
     datos = usuario_obj.consultar_perfil()
 
-    fila_info("ID",          datos["idUsuario"])
-    fila_info("Nombre",      datos["nombre_completo"])
-    fila_info("Tipo",        datos["tipoUsuario"])
-    fila_info("Foto",        "Cargada ✅" if datos["foto_perfil"] and os.path.exists(datos["foto_perfil"]) else "Sin foto")
+    fila_info("ID",     datos["idUsuario"])
+    fila_info("Nombre", datos["nombre_completo"])
+    fila_info("Tipo",   datos["tipoUsuario"])
+    fila_info("Foto",   "Cargada ✅" if datos["foto_perfil"] and os.path.exists(datos["foto_perfil"]) else "Sin foto")
 
     ctk.CTkFrame(info_frame, height=1, fg_color="#E0E0E0").pack(fill="x", padx=20, pady=(15, 0))
-    
-    # Las optiones
+
+    # Opciones
     opciones = [
-        ("📄 Recibos", lambda: print("Abriendo Recibos")),
-        ("💳 Pagos", lambda: print("Abriendo Pagos")),
+        ("📄 Recibos",   lambda: print("Abriendo Recibos")),
+        ("💳 Pagos",     lambda: print("Abriendo Pagos")),
         ("⚠️ Reportes", lambda: print("Abriendo Reportes"))
     ]
 
     for texto, comando in opciones:
-        btn = ctk.CTkButton(botones_frame, text=texto, width=250, height=60, 
-                            font=("Arial", 16, "bold"), fg_color=Color_boton_oscuro, 
-                            command=comando).pack(fill="x", padx=25, pady=5)
-
-
+        ctk.CTkButton(botones_frame, text=texto, width=250, height=60,
+                      font=("Arial", 16, "bold"), fg_color=Color_boton_oscuro,
+                      command=comando).pack(fill="x", padx=25, pady=5)
 
     ctk.CTkButton(container_botones, text="EDITAR PERFIL", width=140,
                   fg_color=Color_boton_oscuro,
                   command=lambda: editar_perfil(usuario_obj, ventana_panel)
                   ).pack(side="left", padx=5)
- 
+
     ctk.CTkButton(container_botones, text="CERRAR SESIÓN", width=140,
                   fg_color="#8B0000",
                   command=lambda: (ventana_panel.destroy(), ventana_principal.deiconify())).pack(side="left", padx=5)
 
 ##==========================
+# Ventana Gestión de Servicios
+#===========================
+
+def abrir_gestion_servicios(admin_obj):
+    #Crea la ventana secundaria para gestionar los servicios 
+    ventana_servicios = ctk.CTkToplevel(ventana_principal)
+    ventana_servicios.title("Gestión de Servicios")
+    ventana_servicios.geometry("850x550")
+    ventana_servicios.configure(fg_color="white")
+    ventana_servicios.attributes("-topmost", True)
+    
+    main_frame = ctk.CTkFrame(ventana_servicios, fg_color="#F4FDF4", border_color="#196D39", border_width=4, corner_radius=15)
+    main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+    title_bar = ctk.CTkFrame(main_frame, fg_color="#196D39", corner_radius=10, height=40)
+    title_bar.pack(fill="x", padx=0, pady=0)
+
+    ctk.CTkButton(title_bar, text="X", fg_color="white", text_color="#196D39", width=30, height=20, font=("Arial", 12, "bold"),
+                  command=ventana_servicios.destroy).pack(side="right", padx=10, pady=10)
+    
+    #Cuerpo principal dividido en izquierda y derecha 
+    content_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+    content_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    content_frame.grid_columnconfigure(0, weight=3)
+    content_frame.grid_columnconfigure(1, weight=1)
+    content_frame.grid_rowconfigure(0, weight=1)
+
+    # Panel Izquierdo
+    panel_izq = ctk.CTkFrame(content_frame, fg_color="transparent")
+    panel_izq.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+
+    filtros_frame = ctk.CTkFrame(panel_izq, fg_color="transparent")
+    filtros_frame.pack(fill="x", pady=(10, 20))
+
+    f1_f2_frame = ctk.CTkFrame(filtros_frame, fg_color="transparent")
+    f1_f2_frame.pack(fill="x")
+
+    filtro_1 = ctk.CTkComboBox(f1_f2_frame, values=["Tipo: Todos", "Tipo: Medido", "Tipo: Fijo"],
+                               fg_color="#3B9C3D", text_color="white", button_color="#3B9C3D", border_width=0, height=30)
+    filtro_1.pack(side="left", padx=5, expand=True, fill="x")
+
+    filtro_2 = ctk.CTkComboBox(f1_f2_frame, values=["Mov: Todos", "Mov: Pendientes", "Mov: Pagados"],
+                               fg_color="#7A9C7A", text_color="white", button_color="#7A9C7A", border_width=0, height=30)
+    filtro_2.pack(side="left", padx=5, expand=True, fill="x")
+
+    filtro_3 = ctk.CTkEntry(filtros_frame, placeholder_text="Buscar servicio...",
+                            fg_color="#D1D5DB", text_color="black", border_width=0, height=30, justify="center")
+    filtro_3.pack(fill="x", padx=5, pady=(10, 0))
+
+    servicios_frame = ctk.CTkFrame(panel_izq, fg_color="transparent")
+    servicios_frame.pack(fill="both", expand=True)
+
+    # Panel Derecho (Botones y movimientos)
+    panel_derecho = ctk.CTkFrame(content_frame, fg_color="transparent")
+    panel_derecho.grid(row=0, column=1, sticky="nsew")
+    
+    #Separador vertical
+    separador = ctk.CTkFrame(content_frame, fg_color="#196D39", width=3)
+    separador.grid(row=0, column=0, sticky="nse", padx=0, pady=10)
+
+    servicio_seleccionado = ctk.StringVar(value="")
+
+    def seleccionar_servicio(s_id):
+        #Guarda el ID del servicio seleccionado y recarga la cuadricula para actualizar bordes
+        servicio_seleccionado.set(s_id)
+        cargar_servicios()
+
+    def cargar_servicios(*args):
+        #Limpia la vista y vuelve a generar los botones de los servicios
+        for widget in servicios_frame.winfo_children():
+            widget.destroy()
+
+        col = 0
+        row = 0
+        colores = [
+            ("#C9E4FF", "#3B82F6"),
+            ("#FFF9C4", "#F59E0B"),
+            ("#D7CCC8", "#8D6E63"),
+            ("#FFCDD2", "#EF5350"),
+            ("#C8E6C9", "#4CAF50")
+        ]
+
+        tipo_filtro = filtro_1.get()
+        busqueda = filtro_3.get().lower()
+
+        idx = 0
+        for s_id, s in sistema_back.servicios.items():
+            if tipo_filtro == "Tipo: Medido" and s.tipo != "medido":
+                continue
+            if tipo_filtro == "Tipo: Fijo" and s.tipo != "fijo":
+                continue
+            if busqueda and busqueda not in s.nombre.lower():
+                continue
+
+            bg_color, border_color = colores[idx % len(colores)]
+            idx += 1
+           
+            #Resaltar si esta selccionado
+            is_sel = (servicio_seleccionado.get() == s_id)
+            current_border = "#000000" if is_sel else border_color
+            b_width = 5 if is_sel else 3
+
+            btn = ctk.CTkButton(servicios_frame, text=f"{s.nombre.upper()}\n${s.tarifa}",
+                                font=("Consolas", 18, "bold"), text_color="black",
+                                fg_color=bg_color, hover_color=bg_color,
+                                border_color=current_border, border_width=b_width,
+                                width=150, height=100, corner_radius=20,
+                                command=lambda id_s=s_id: seleccionar_servicio(id_s))
+            btn.grid(row=row, column=col, padx=15, pady=15, sticky="nsew")
+            col += 1
+            if col > 1:
+                col = 0
+                row += 1
+
+    filtro_1.configure(command=cargar_servicios)
+    filtro_3.bind("<KeyRelease>", cargar_servicios)
+    cargar_servicios()
+
+    def abrir_form_servicio(es_editar=False):
+        if es_editar and not servicio_seleccionado.get():
+            mostrar_error("Selecciona un servicio para editar.")
+            return
+
+        form = ctk.CTkToplevel(ventana_servicios)
+        form.title("Editar Servicio" if es_editar else "Nuevo Servicio")
+        form.geometry("300x350")
+        form.configure(fg_color=Color_fondo)
+        form.attributes("-topmost", True)
+
+        ctk.CTkLabel(form, text="Editar Servicio" if es_editar else "Nuevo Servicio", font=("Arial", 16, "bold")).pack(pady=10)
+
+        ent_nombre = ctk.CTkEntry(form, placeholder_text="Nombre (Ej. Agua)")
+        ent_nombre.pack(pady=10)
+
+        tipo_var = ctk.StringVar(value="medido")
+        ctk.CTkRadioButton(form, text="Medido (por unidad)", variable=tipo_var, value="medido").pack(pady=5)
+        ctk.CTkRadioButton(form, text="Cuota Fija", variable=tipo_var, value="fijo").pack(pady=5)
+
+        ent_tarifa = ctk.CTkEntry(form, placeholder_text="Tarifa ($)")
+        ent_tarifa.pack(pady=10)
+
+        if es_editar:
+            s_edit = sistema_back.servicios[servicio_seleccionado.get()]
+            ent_nombre.insert(0, s_edit.nombre)
+            tipo_var.set(s_edit.tipo)
+            ent_tarifa.insert(0, str(s_edit.tarifa))
+
+        def guardar():
+            nombre = ent_nombre.get()
+            tipo = tipo_var.get()
+            tarifa = ent_tarifa.get()
+            if nombre and tarifa:
+                try:
+                    float(tarifa)
+                    if es_editar:
+                        sistema_back.editar_servicio(servicio_seleccionado.get(), nombre, tipo, tarifa)
+                    else:
+                        sistema_back.crear_servicio(nombre, tipo, tarifa)
+                    cargar_servicios()
+                    form.destroy()
+                except:
+                    mostrar_error("Tarifa debe ser número")
+
+        ctk.CTkButton(form, text="Guardar", fg_color=Color_boton_oscuro, command=guardar).pack(pady=20)
+
+    ctk.CTkButton(panel_derecho, text="+ servicios", fg_color="#196D39", font=("Arial", 14, "bold"),
+                  corner_radius=10, height=40, command=lambda: abrir_form_servicio(False)).pack(pady=(20, 10), padx=20, fill="x")
+
+    botones_gestion_frame = ctk.CTkFrame(panel_derecho, fg_color="transparent")
+    botones_gestion_frame.pack(fill="x", padx=20, pady=10)
+
+    ctk.CTkButton(botones_gestion_frame, text="Editar", fg_color="#9CA3AF", font=("Arial", 14, "bold"),
+                  text_color="white", corner_radius=10, height=35,
+                  command=lambda: abrir_form_servicio(True)).pack(side="left", expand=True, padx=(0, 5), fill="x")
+
+    mov_seleccionado = ctk.StringVar(value="")
+
+    def marcar_como_pagado():
+        c_id = mov_seleccionado.get()
+        if c_id:
+            sistema_back.marcar_consumo_pagado(c_id)
+            cargar_movimientos()
+            mostrar_exito()
+        else:
+            mostrar_error("Selecciona un movimiento.")
+
+    def eliminar_movimiento():
+        c_id = mov_seleccionado.get()
+        if c_id:
+            sistema_back.eliminar_consumo(c_id)
+            cargar_movimientos()
+            mostrar_exito()
+        else:
+            mostrar_error("Selecciona un movimiento.")
+
+    ctk.CTkButton(botones_gestion_frame, text="Pagado", fg_color="#3B82F6", font=("Arial", 14, "bold"),
+                  text_color="white", corner_radius=10, height=35, command=marcar_como_pagado, width=100).pack(side="left", expand=True, padx=5, fill="x")
+    ctk.CTkButton(botones_gestion_frame, text="Eliminar", fg_color="#EF4444", font=("Arial", 14, "bold"),
+                  text_color="white", corner_radius=10, height=35, command=eliminar_movimiento, width=100).pack(side="right", expand=True, padx=(0, 5), fill="x")
+
+    mov_frame = ctk.CTkFrame(panel_derecho, fg_color="#DCFCE7", corner_radius=15)
+    mov_frame.pack(fill="both", expand=True, padx=20, pady=(10, 20))
+    ctk.CTkLabel(mov_frame, text="movimientos", font=("Arial", 14, "bold"), text_color="black").pack(pady=10)
+
+    scroll_mov = ctk.CTkScrollableFrame(mov_frame, fg_color="transparent")
+    scroll_mov.pack(fill="both", expand=True, padx=5, pady=5)
+
+    def cargar_movimientos(*args):
+        # Muestra el historial de consumos registrados, aplicando el filtro de Pagados/Pendientes
+        for widget in scroll_mov.winfo_children():
+            widget.destroy()
+
+        filtro_mov = filtro_2.get()
+        movimientos = list(sistema_back.consumos.values())
+
+        if filtro_mov == "Mov: Pagados":
+            movimientos = [c for c in movimientos if c.estado == "pagado"]
+        elif filtro_mov == "Mov: Pendientes":
+            movimientos = [c for c in movimientos if c.estado == "pendiente"]
+
+        for c in reversed(movimientos[-15:]):
+            nom_serv = sistema_back.servicios[c.servicio_id].nombre if c.servicio_id in sistema_back.servicios else "Servicio"
+            nom_user = sistema_back.usuarios[c.usuario_id].Username if c.usuario_id in sistema_back.usuarios else "Desconocido"
+            estado_texto = "✅" if c.estado == "pagado" else "⏳"
+            color_texto = "#9CA3AF" if c.estado == "pagado" else "#1F2937"
+
+            ctk.CTkRadioButton(scroll_mov,
+                               text=f"{estado_texto} {nom_serv} - {nom_user}: ${c.total(sistema_back):.2f}",
+                               variable=mov_seleccionado, value=c.idConsumo,
+                               font=("Arial", 12), text_color=color_texto).pack(pady=5, anchor="w")
+
+    filtro_2.configure(command=cargar_movimientos)
+    cargar_movimientos()
+
+    ctk.CTkButton(panel_derecho, text="", fg_color="#196D39", width=30, height=30, corner_radius=15, hover=False).pack(side="right", padx=10, pady=10)
+
+##==========================
+# Ventana Registro Consumo
+#===========================
+
+def abrir_registro_consumo(admin_obj):
+    # Ventana para capturar el consumo o la cuota de un inquilino
+    ventana_reg = ctk.CTkToplevel(ventana_principal)
+    ventana_reg.title("Registro Consumo")
+    ventana_reg.geometry("500x500")
+    ventana_reg.configure(fg_color=Color_fondo)
+    ventana_reg.attributes("-topmost", True)
+
+    main_frame = ctk.CTkFrame(ventana_reg, fg_color="white", corner_radius=15)
+    main_frame.pack(fill="both", expand=True, padx=30, pady=30)
+
+    ctk.CTkLabel(main_frame, text="Registro de Consumo", font=("Arial", 18, "bold"), text_color=Color_texto_oscuro).pack(pady=10)
+    
+    # Menú desplegable para seleccionar a qué residente cobrarle
+    residentes = [f"{u.idUsuario} - {u.Username}" for u in sistema_back.usuarios.values() if u.tipoUsuario != "admin"]
+    combo_residente = ctk.CTkComboBox(main_frame, values=residentes if residentes else ["Sin residentes"], width=300)
+    combo_residente.set("Lista Residente")
+    combo_residente.pack(pady=10)
+
+    ctk.CTkLabel(main_frame, text="Servicio:", font=("Arial", 14, "bold"), anchor="w", text_color="black").pack(fill="x", padx=40, pady=(10, 0))
+
+    servicios_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+    servicios_frame.pack(pady=10)
+
+    servicio_var = ctk.StringVar(value="")
+
+    colores = ["#A9C2F0", "#FFF4B0", "#D3C2A3", "#FFC1C1"]
+    idx = 0
+    todos_servicios = list(sistema_back.servicios.values())
+
+    ent_anterior = ctk.CTkEntry(main_frame, placeholder_text="Lectura anterior", width=300)
+    ent_anterior.pack(pady=5)
+
+    ent_actual = ctk.CTkEntry(main_frame, placeholder_text="Lectura Actual", width=300)
+    ent_actual.pack(pady=5)
+
+    lbl_consumo = ctk.CTkLabel(main_frame, text="Consumo: 0", font=("Arial", 14, "bold"),
+                               text_color="white", fg_color="#89cd84", width=300, corner_radius=5)
+    lbl_consumo.pack(pady=5)
+
+    def calcular_consumo(*args):
+        try:
+            ant = float(ent_anterior.get())
+            act = float(ent_actual.get())
+            cons = act - ant
+            lbl_consumo.configure(text=f"Consumo: {cons}")
+        except:
+            lbl_consumo.configure(text="Consumo: 0")
+
+    def on_servicio_select():
+        # Si el servicio es de cuota fija, esconde las cajas de lectura y muestra el total directo
+        s_id = servicio_var.get()
+        if s_id in sistema_back.servicios:
+            s = sistema_back.servicios[s_id]
+            if s.tipo == "fijo":
+                ent_anterior.pack_forget()
+                ent_actual.pack_forget()
+                lbl_consumo.configure(text=f"Cuota Fija: ${s.tarifa}")
+            else:
+                ent_anterior.pack(pady=5, before=lbl_consumo)
+                ent_actual.pack(pady=5, before=lbl_consumo)
+                calcular_consumo()
+
+    for s in todos_servicios:
+        btn_color = colores[idx % len(colores)]
+        idx += 1
+        btn = ctk.CTkRadioButton(servicios_frame, text=s.nombre, variable=servicio_var, value=s.idServicio,
+                                 fg_color=Color_boton_oscuro, font=("Arial", 14, "bold"), text_color="black",
+                                 command=on_servicio_select)
+        btn.pack(side="left", padx=10)
+
+    if not todos_servicios:
+        ctk.CTkLabel(servicios_frame, text="No hay servicios creados.", text_color="black").pack()
+
+    ent_anterior.bind("<KeyRelease>", calcular_consumo)
+    ent_actual.bind("<KeyRelease>", calcular_consumo)
+
+    from datetime import datetime
+    ent_fecha = ctk.CTkEntry(main_frame, placeholder_text="Fecha (YYYY-MM-DD)", width=300)
+    ent_fecha.insert(0, datetime.now().strftime("%Y-%m-%d"))
+    ent_fecha.pack(pady=5)
+
+    def guardar_consumo():
+        try:
+            res_id = combo_residente.get().split(" - ")[0]
+            serv_id = servicio_var.get()
+
+            s = sistema_back.servicios.get(serv_id)
+            if not s:
+                mostrar_error("Seleccione un servicio válido.")
+                return
+
+            if s.tipo == "fijo":
+                cons = 1.0 # Cantidad 1 para que al multiplicar por tarifa de el total
+            else:
+                ant = float(ent_anterior.get())
+                act = float(ent_actual.get())
+                cons = act - ant
+
+            fecha = ent_fecha.get()
+
+            if serv_id and res_id and res_id not in ("Sin residentes", "Lista Residente"):
+                sistema_back.registrar_consumo(cons, res_id, serv_id, fecha)
+                ventana_reg.destroy()
+            else:
+                mostrar_error("Seleccione residente y servicio.")
+        except Exception as e:
+            mostrar_error("Verifique los datos ingresados.")
+
+    ctk.CTkButton(main_frame, text="Guardar", fg_color="#196D39", font=("Arial", 14, "bold"), command=guardar_consumo).pack(pady=20)
+
+##==========================
+# Ventana Generar Recibo
+#===========================
+
+def abrir_generar_recibo(admin_obj):
+    # Ventana para generar recibos en base a los consumos pendientes de un inquilino
+    ventana_recibo = ctk.CTkToplevel(ventana_principal)
+    ventana_recibo.title("Generar Recibo")
+    ventana_recibo.geometry("500x400")
+    ventana_recibo.configure(fg_color="white")
+    ventana_recibo.attributes("-topmost", True)
+
+    main_frame = ctk.CTkFrame(ventana_recibo, fg_color="#F4FDF4", border_color="#196D39", border_width=3, corner_radius=15)
+    main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+    title_bar = ctk.CTkFrame(main_frame, fg_color="#196D39", corner_radius=10, height=30)
+    title_bar.pack(fill="x")
+    ctk.CTkButton(title_bar, text="X", fg_color="white", text_color="#196D39", width=20, height=20,
+                  font=("Arial", 12, "bold"), command=ventana_recibo.destroy).pack(side="right", padx=5, pady=5)
+
+    content_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+    content_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+    ent_periodo = ctk.CTkEntry(content_frame, placeholder_text="Fecha / Periodo",
+                               fg_color="#D1D5DB", text_color="black", border_width=0, justify="center")
+    ent_periodo.pack(fill="x", pady=(10, 20))
+
+    botones_frame = ctk.CTkFrame(content_frame, fg_color="transparent")
+    botones_frame.pack(fill="x", pady=10)
+
+    tipo_var = ctk.StringVar(value="individual")
+    residentes = [f"{u.idUsuario} - {u.Username}" for u in sistema_back.usuarios.values() if u.tipoUsuario != "admin"]
+    combo_residente = ctk.CTkComboBox(content_frame, values=residentes if residentes else ["Sin residentes"], width=300)
+    combo_residente.set("Seleccione Residente")
+
+    def on_tipo_change():
+        if tipo_var.get() == "individual":
+            combo_residente.pack(pady=10)
+        else:
+            combo_residente.pack_forget()
+
+    btn_ind = ctk.CTkRadioButton(botones_frame, text="Individual", variable=tipo_var, value="individual",
+                                 font=("Arial", 16, "bold"), text_color="black", fg_color="#196D39", command=on_tipo_change)
+    btn_ind.pack(side="left", padx=(30, 20))
+    btn_gen = ctk.CTkRadioButton(botones_frame, text="General", variable=tipo_var, value="general",
+                                 font=("Arial", 16, "bold"), text_color="black", fg_color="#196D39", command=on_tipo_change)
+    btn_gen.pack(side="right", padx=(20, 30))
+
+    on_tipo_change()
+
+    ctk.CTkFrame(content_frame, height=2, fg_color="#196D39").pack(fill="x", pady=15)
+
+    def obtener_pendientes():
+        # Busca en la base de datos todos los consumos (movimientos) que estén en estado "pendiente" para el inquilino
+        pendientes = []
+        if tipo_var.get() == "individual":
+            res_id = combo_residente.get().split(" - ")[0]
+            if res_id and res_id not in ("Sin residentes", "Seleccione Residente"):
+                pendientes = [c for c in sistema_back.consumos.values() if c.usuario_id == res_id and c.estado == "pendiente"]
+        else:
+            pendientes = [c for c in sistema_back.consumos.values() if c.estado == "pendiente"]
+        return pendientes
+
+    def mostrar_vista_previa():
+        # Abre un pequeño recuadro previsualizando el total del recibo
+        pendientes = obtener_pendientes()
+        total = sum(c.total(sistema_back) for c in pendientes)
+
+        vp = ctk.CTkToplevel(ventana_recibo)
+        vp.title("Vista Previa (Recibo)")
+        vp.geometry("400x300")
+        vp.configure(fg_color="white")
+        vp.attributes("-topmost", True)
+
+        mf = ctk.CTkFrame(vp, fg_color="#F4FDF4", border_color="#196D39", border_width=3, corner_radius=15)
+        mf.pack(fill="both", expand=True, padx=10, pady=10)
+
+        info_frame = ctk.CTkFrame(mf, fg_color="#E5E7EB", corner_radius=15)
+        info_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        detalles = (f"Información Recibo\n\nPeriodo: {ent_periodo.get()}\n"
+                    f"Tipo: {tipo_var.get().capitalize()}\n\n"
+                    f"Consumos pendientes: {len(pendientes)}\n"
+                    f"Total estimado: ${total:.2f}")
+
+        ctk.CTkLabel(info_frame, text=detalles, font=("Arial", 14), text_color="black").pack(expand=True)
+
+    def imprimir():
+        imp = ctk.CTkToplevel(ventana_recibo)
+        imp.title("Imprimiendo")
+        imp.geometry("250x150")
+        imp.configure(fg_color="white")
+        imp.attributes("-topmost", True)
+
+        mf = ctk.CTkFrame(imp, fg_color="#F4FDF4", border_color="#196D39", border_width=3, corner_radius=10)
+        mf.pack(fill="both", expand=True, padx=10, pady=10)
+        ctk.CTkLabel(mf, text="🖨️ Imprimiendo", font=("Arial", 16, "bold"), text_color="black").pack(pady=(20, 10))
+        ctk.CTkButton(mf, text="Aceptar", fg_color="white", border_color="#196D39",
+                      border_width=2, text_color="black", command=imp.destroy).pack()
+
+    def guardar():
+        # Suma los consumos pendientes, crea el recibo en base de datos y marca esos consumos como pagados
+        pendientes = obtener_pendientes()
+        total = sum(c.total(sistema_back) for c in pendientes)
+
+        if total <= 0:
+            mostrar_error("No hay consumos pendientes.")
+            return
+        
+        # Marcar los pendientes como pagados
+        for c in pendientes:
+            sistema_back.marcar_consumo_pagado(c.idConsumo)
+
+        res_id = combo_residente.get().split(" - ")[0] if tipo_var.get() == "individual" else "varios"
+        sistema_back.generar_recibo(usuario_id=res_id, periodo=ent_periodo.get(), total=total)
+        mostrar_exito()
+        ventana_recibo.destroy()
+
+    ctk.CTkButton(content_frame, text="Vista Previa", fg_color="#196D39", font=("Arial", 14, "bold"), command=mostrar_vista_previa).pack(fill="x", pady=5)
+    ctk.CTkButton(content_frame, text="Guardar", fg_color="#196D39", font=("Arial", 14, "bold"), command=guardar).pack(fill="x", pady=5)
+    ctk.CTkButton(content_frame, text="Imprimir", fg_color="#196D39", font=("Arial", 14, "bold"), command=imprimir).pack(side="right", pady=10, padx=20)
+
+##==========================
 # Panel de Administrador
-#===========================     
+#===========================
 
 def abrir_panel_admin(usuario_obj):
     global sistema_back # <--- Esto es clave para que no explote juasujujuasas, xq exploto el mio
-    
+
     ventana_admin = ctk.CTkToplevel()
     ventana_admin.title(f"SAC Admin - {usuario_obj.Username}")
     ventana_admin.geometry("750x600")
     ventana_admin.configure(fg_color=Color_fondo)
 
-    frame_perfil = ctk.CTkFrame(ventana_admin, 
-                                fg_color="#162440", 
-                                width=360, 
-                                corner_radius=0)
+    frame_perfil = ctk.CTkFrame(ventana_admin, fg_color="#162440", width=360, corner_radius=0)
     frame_perfil.pack(side="left", fill="y")
 
- # para cargar la foto
     try:
         if os.path.exists(usuario_obj.foto_perfil):
             img_p = ctk.CTkImage(Image.open(usuario_obj.foto_perfil), size=(140, 140))
-            ctk.CTkLabel(frame_perfil, image=img_p, text="").pack(pady=(60, 20), padx= 40)
+            ctk.CTkLabel(frame_perfil, image=img_p, text="").pack(pady=(60, 20), padx=40)
         else:
             raise Exception("No existe")
     except:
-        ctk.CTkLabel(frame_perfil, text="👤", font=("Arial", 100), text_color="white").pack(pady=(60, 20), padx= 50)
+        ctk.CTkLabel(frame_perfil, text="👤", font=("Arial", 100), text_color="white").pack(pady=(60, 20), padx=50)
 
-    ctk.CTkLabel(frame_perfil, 
-                 text=usuario_obj.Username, 
-                 font=("Arial", 20, "bold"), 
-                 text_color="white"
-                 ).pack()
-
-    ctk.CTkLabel(frame_perfil, 
-                 text="ADMINISTRADOR", 
-                 font=("Arial", 12), 
-                 text_color="#A9A9A9"
-                 ).pack(pady=5)
-
+    ctk.CTkLabel(frame_perfil, text=usuario_obj.Username, font=("Arial", 20, "bold"), text_color="white").pack()
+    ctk.CTkLabel(frame_perfil, text="ADMINISTRADOR", font=("Arial", 12), text_color="#A9A9A9").pack(pady=5)
+    
     # lado derecho xd
     frame_der = ctk.CTkFrame(ventana_admin, fg_color="transparent")
     frame_der.pack(side="right", expand=True, fill="both", padx=20)
-
+    
     # BARRA DE MENU 
     barra_sup = ctk.CTkFrame(frame_der, fg_color="transparent")
     barra_sup.pack(fill="x", pady=20)
@@ -309,118 +762,78 @@ def abrir_panel_admin(usuario_obj):
             if nueva:
                 usuario_obj.contraseña = nueva
                 sistema_back.guardar_csv_nuevo()
-
         elif seleccion == "Gestion de residentes":
             ventana_admin.destroy()
             abrir_gestion_residentes(usuario_obj)
+        elif seleccion == "Gestion de servicios":
+            abrir_gestion_servicios(usuario_obj)
 
-
-    menu_ops = ctk.CTkOptionMenu(barra_sup, 
-                                values=["Cambio de nombre", "Cambio contraseña", "Gestion de residentes", "Gestion de servicios"],
-                                command=gestionar_opcion, 
-                                fg_color=Color_boton_oscuro, 
-                                button_color=Color_boton_oscuro, 
-                                width=200)
-    
+    menu_ops = ctk.CTkOptionMenu(barra_sup,
+                                 values=["Cambio de nombre", "Cambio contraseña", "Gestion de residentes", "Gestion de servicios"],
+                                 command=gestionar_opcion,
+                                 fg_color=Color_boton_oscuro,
+                                 button_color=Color_boton_oscuro,
+                                 width=200)
     menu_ops.set("⚙️ Gestión")
     menu_ops.pack(side="left")
 
-    ctk.CTkButton(barra_sup, 
-                  text="Cerrar Sesión", 
-                  fg_color="#8B0000", 
-                  width=100, 
-              command=lambda: (ventana_admin.destroy(), ventana_principal.deiconify())).pack(side="right")
+    ctk.CTkButton(barra_sup, text="Cerrar Sesión", fg_color="#8B0000", width=100,
+                  command=lambda: (ventana_admin.destroy(), ventana_principal.deiconify())).pack(side="right")
 
     info_frame = ctk.CTkFrame(frame_der, fg_color="white", corner_radius=15)
     info_frame.pack(fill="x", pady=10)
-    
-    ctk.CTkLabel(info_frame, 
-                 text="Datos de Admin", 
-                 font=("Arial", 14, "bold"), 
-                 text_color="gray").pack(pady=10)
-    
-    ctk.CTkLabel(info_frame, 
-                 text=f"Nombre: {usuario_obj.nombre_completo}", 
-                 font=("Arial", 12)).pack()
-    
-    ctk.CTkLabel(info_frame, 
-                 text=f"ID: {usuario_obj.idUsuario}", 
-                 font=("Arial", 12)).pack()
 
+    ctk.CTkLabel(info_frame, text="Datos de Admin", font=("Arial", 14, "bold"), text_color="gray").pack(pady=10)
+    ctk.CTkLabel(info_frame, text=f"Nombre: {usuario_obj.nombre_completo}", font=("Arial", 12)).pack()
+    ctk.CTkLabel(info_frame, text=f"ID: {usuario_obj.idUsuario}", font=("Arial", 12)).pack()
+    
     # --- BOTONES ---
-    ctk.CTkButton(frame_der, 
-                  text="📝 Registrar consumo", 
-                  fg_color=Color_boton_oscuro, 
-                  corner_radius=12, 
-                  font=("Arial", 15, "bold"),
-                  height=55).pack(fill="x", pady=15)
-    
-    ctk.CTkButton(frame_der, 
-                  text="📊 Ver Reportes", 
-                  fg_color=Color_boton_oscuro, 
-                  corner_radius=12, 
-                  font=("Arial", 15, "bold"),
-                  height=55).pack(fill="x", pady=15)
+    ctk.CTkButton(frame_der, text="📝 Registrar consumo", fg_color=Color_boton_oscuro,
+                  corner_radius=12, font=("Arial", 15, "bold"), height=55,
+                  command=lambda: abrir_registro_consumo(usuario_obj)).pack(fill="x", pady=15)
 
-    ctk.CTkButton(frame_der, 
-        text="💰 Generar Recibo de Pago", 
-        height=55, 
-        fg_color=Color_boton_oscuro, 
-        corner_radius=12, 
-        font=("Arial", 15, "bold"),
-        command=lambda: print("Abriendo Generador de Recibos...") # Luego le ponemos su función real xdxdxdxd
-    ).pack(fill="x", pady=15)
+    ctk.CTkButton(frame_der, text="📊 Ver Reportes", fg_color=Color_boton_oscuro,
+                  corner_radius=12, font=("Arial", 15, "bold"), height=55).pack(fill="x", pady=15)
 
+    ctk.CTkButton(frame_der, text="💰 Generar Recibo de Pago", height=55,
+                  fg_color=Color_boton_oscuro, corner_radius=12, font=("Arial", 15, "bold"),
+                  command=lambda: abrir_generar_recibo(usuario_obj)).pack(fill="x", pady=15)
 
 # ===========================
-# Olvido contraseña
+# Olvidó contraseña
 # ===========================
+
 def abrir_olvido_pass():
     ventana_olvido = ctk.CTkToplevel()
     ventana_olvido.geometry("400x400")
     ventana_olvido.title("Recuperar Cuenta")
     ventana_olvido.configure(fg_color=Color_fondo)
     ventana_olvido.attributes("-topmost", True)
-
-# Encabezado visual
-    ctk.CTkLabel(
-        ventana_olvido, 
-        text="Restablecer Contraseña", 
-        font=("Arial", 20, "bold"),
-        text_color=Color_texto_oscuro
-    ).pack(pady=20)
     
-# Campo para identificar al usuario
-    ent_u = ctk.CTkEntry(
-        ventana_olvido, 
-        placeholder_text="Nombre de usuario registrado", 
-        width=280,
-        height=35,
-        corner_radius=10
-    )
+    # Encabezado visual
+    ctk.CTkLabel(ventana_olvido, text="Restablecer Contraseña", font=("Arial", 20, "bold"),
+                 text_color=Color_texto_oscuro).pack(pady=20)
+    
+    # Campo para identificar al usuario
+    ent_u = ctk.CTkEntry(ventana_olvido, placeholder_text="Nombre de usuario registrado",
+                         width=280, height=35, corner_radius=10)
     ent_u.pack(pady=10)
     
-# Campo para la nueva clave
-    ent_p_nueva = ctk.CTkEntry(
-        ventana_olvido, 
-        placeholder_text="Nueva Contraseña", 
-        show="*", 
-        width=280,
-        height=35,
-        corner_radius=10
-    )
+    # Campo para la nueva clave
+    ent_p_nueva = ctk.CTkEntry(ventana_olvido, placeholder_text="Nueva Contraseña", show="*",
+                               width=280, height=35, corner_radius=10)
     ent_p_nueva.pack(pady=10)
 
 # Nueva logica de conexcion con el back
     def ejecutar_actualizacion():
         nombre_usuario = ent_u.get().strip()
-        nueva_clave    = ent_p_nueva.get().strip()
+        nueva_clave = ent_p_nueva.get().strip()
 
 # Validacion 1: Campos obligatorios
         if not nombre_usuario or not nueva_clave:
             print("Error: Todos los campos deben ser completados para continuar.")
             return
-
+        
 # Llamada al backend para actualizar la contraseña
         resultado_exito = sistema_back.actualizarContraseña(nombre_usuario, nueva_clave)
 
@@ -432,28 +845,16 @@ def abrir_olvido_pass():
 # Si el backend devolvió False (el usuario no existe)
             mostrar_error("El usuario no existe en la base de datos.")
 
-# Boton principal de accion
-    btn_confirmar = ctk.CTkButton(
-        ventana_olvido, 
-        text="Guardar Nueva Contraseña", 
-        fg_color=Color_boton_oscuro,
-        hover_color="#004D40",
-        width=220,
-        height=45,
-        corner_radius=15,
-        font=("Arial", 13, "bold"),
-        command=ejecutar_actualizacion 
-    )
-    btn_confirmar.pack(pady=30)
+    ctk.CTkButton(ventana_olvido, text="Guardar Nueva Contraseña", fg_color=Color_boton_oscuro,
+                  hover_color="#004D40", width=220, height=45, corner_radius=15,
+                  font=("Arial", 13, "bold"), command=ejecutar_actualizacion).pack(pady=30)
 
-# Boton para cancelar
-    ctk.CTkButton(
-        ventana_olvido, 
-        text="Cancelar", 
-        fg_color="transparent", 
-        text_color="red",
-        command=ventana_olvido.destroy
-    ).pack()
+    ctk.CTkButton(ventana_olvido, text="Cancelar", fg_color="transparent", text_color="red",
+                  command=ventana_olvido.destroy).pack()
+
+# ===========================
+# Login de usuario
+# ===========================
 
 def abrir_login_usuario():
 # Ventana de login que conecta con el backend
@@ -465,90 +866,87 @@ def abrir_login_usuario():
     ventana_login.configure(fg_color=Color_fondo)
     ventana_login.attributes("-topmost", True)
 
-    main_frame = ctk.CTkFrame(ventana_login, fg_color="#BCDFC2", corner_radius= 20, border_width=0)
+    main_frame = ctk.CTkFrame(ventana_login, fg_color="#BCDFC2", corner_radius=20, border_width=0)
     main_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER, relwidth=0.8, relheight=0.8)
 
     ctk.CTkLabel(main_frame, text="🔑 Ingreso Usuario", font=("Arial", 24, "bold"), text_color="#162440").pack(pady=20)
-    
-    ent_user = ctk.CTkEntry(main_frame, placeholder_text="Nombre de Usuario", width=250, height= 35, border_width=2, corner_radius=10)
+
+    ent_user = ctk.CTkEntry(main_frame, placeholder_text="Nombre de Usuario", width=250, height=35, border_width=2, corner_radius=10)
     ent_user.pack(pady=10)
 
-    ent_pass = ctk.CTkEntry(main_frame, placeholder_text="Contraseña", show="*", width=250, height= 35, border_width=2, corner_radius=10)
+    ent_pass = ctk.CTkEntry(main_frame, placeholder_text="Contraseña", show="*", width=250, height=35, border_width=2, corner_radius=10)
     ent_pass.pack(pady=10)
 
     def intentar_login():
         u = ent_user.get()
         p = ent_pass.get()
         usuario = sistema_back.autenticar(u, p)
-        
+
         if usuario == "usuario_pendiente":
             mostrar_error("Tu cuenta está pendiente de aprobación por el administrador")
-    
         elif usuario:
             ventana_login.destroy()
-        
             if usuario.tipoUsuario == "admin":
                 abrir_panel_admin(usuario)
             else:
                 abrir_panel_usuario(usuario)
-        
         else:
             mostrar_error("Usuario o contraseña incorrectos")
 
     ctk.CTkButton(main_frame, text="Entrar", fg_color=Color_boton_oscuro, command=intentar_login).pack(pady=15)
-    ctk.CTkButton(main_frame, text="Olvidé mi contraseña", fg_color="transparent", text_color="blue", hover=False, command=abrir_olvido_pass).pack()
-    ctk.CTkButton(main_frame, text="Volver", command=lambda: [ventana_login.destroy(), ventana_menu.deiconify()]).pack(pady=10)
+    ctk.CTkButton(main_frame, text="Olvidé mi contraseña", fg_color="transparent", text_color="blue",
+                  hover=False, command=abrir_olvido_pass).pack()
+    ctk.CTkButton(main_frame, text="Volver",
+                  command=lambda: [ventana_login.destroy(), ventana_menu.deiconify()]).pack(pady=10)
 
 # ===========================
-# Ventana de menu gestion de residentes (solo admin)
+# Gestión de Residentes (solo admin)
 # ===========================
 
 def abrir_gestion_residentes(admin_obj):
     ventana_gestion_users = ctk.CTkToplevel(ventana_principal)
     ventana_gestion_users.title("SAC - Gestión de Residentes")
     ventana_gestion_users.geometry("1200x600")
-    ventana_gestion_users.configure(fg_color=Color_fondo) 
+    ventana_gestion_users.configure(fg_color=Color_fondo)
 
     ventana_gestion_users.grid_columnconfigure(0, weight=4)
     ventana_gestion_users.grid_columnconfigure(1, weight=1)
     ventana_gestion_users.grid_rowconfigure(1, weight=1)
-   
+
     frame_superior = ctk.CTkFrame(ventana_gestion_users, fg_color="transparent", corner_radius=10, height=100)
     frame_superior.grid(row=0, column=0, columnspan=2, padx=20, pady=10, sticky="nsew")
-    ctk.CTkButton(frame_superior,text="← Volver",fg_color="#8B0000",
-    command=lambda: [ventana_gestion_users.destroy(), abrir_panel_admin(admin_obj)]
-    ).place(x=900, y=10)
+    ctk.CTkButton(frame_superior, text="← Volver", fg_color="#8B0000",
+                  command=lambda: [ventana_gestion_users.destroy(), abrir_panel_admin(admin_obj)]
+                  ).place(x=900, y=10)
 
-    ctk.CTkLabel(frame_superior, text="Gestión de Residentes", font=("Arial", 12, "bold"), text_color=Color_texto_oscuro).place(x=20, y=10) 
-    
-    #Barra de filtro
+    ctk.CTkLabel(frame_superior, text="Gestión de Residentes", font=("Arial", 12, "bold"),
+                 text_color=Color_texto_oscuro).place(x=20, y=10)
+
     entry_busqueda = ctk.CTkEntry(frame_superior, placeholder_text="Buscar por nombre o ID", width=300)
     entry_busqueda.place(x=20, y=40)
 
-    #necesario para filtros 
-    filtros= ctk.CTkSegmentedButton(frame_superior, values=["Todos", "Propietarios", "Inquilinos"],  text_color="white")
+    filtros = ctk.CTkSegmentedButton(frame_superior, values=["Todos", "Propietarios", "Inquilinos"], text_color="white")
     filtros.set("Todos")
     filtros.place(x=350, y=40)
 
-    #Estado de residente
-    estado_var = ctk.CTkComboBox(frame_superior, values=["Todos","Activo", "Pendiente"], text_color= Color_texto_oscuro)
+    estado_var = ctk.CTkComboBox(frame_superior, values=["Todos", "Activo", "Pendiente"], text_color=Color_texto_oscuro)
     estado_var.place(x=580, y=40)
-    estado_var.set ("Todos")
+    estado_var.set("Todos")
 
-    frame_centro= ctk.CTkFrame(ventana_gestion_users, fg_color="transparent", corner_radius=10)
-    frame_centro.grid(row=1, column=0, padx=(20, 10), pady=(0,20), sticky="nsew")
+    frame_centro = ctk.CTkFrame(ventana_gestion_users, fg_color="transparent", corner_radius=10)
+    frame_centro.grid(row=1, column=0, padx=(20, 10), pady=(0, 20), sticky="nsew")
 
-    ctk.CTkLabel(frame_centro, text="Lista de Residentes", font=("Arial", 14, "bold"), text_color=Color_texto_oscuro).pack(anchor="w", padx=20, pady=10)
-    
-    #CREACION DE TABLA
-    estilo= ttk.Style()
+    ctk.CTkLabel(frame_centro, text="Lista de Residentes", font=("Arial", 14, "bold"),
+                 text_color=Color_texto_oscuro).pack(anchor="w", padx=20, pady=10)
+
+    estilo = ttk.Style()
     estilo.theme_use("classic")
     estilo.configure("Treeview", background="#E0E0E0", fielbackground="#E0E0E0", rowheight=35)
     estilo.map("Treeview", background=[("selected", "#196D39")])
-     
+
     columnas = ("ID", "Nombre", "Tipo", "Estado", "Informacion")
     tabla_residentes = ttk.Treeview(frame_centro, columns=columnas, show="headings")
-    
+
     tabla_residentes.heading("ID", text="ID")
     tabla_residentes.heading("Nombre", text="Nombre")
     tabla_residentes.heading("Tipo", text="Tipo")
@@ -589,20 +987,18 @@ def abrir_gestion_residentes(admin_obj):
                 "👁️"
             ))
 
-    # cargar tabla al inicio
     cargar_tabla()
 
-    # activar filtros dinámicos
     entry_busqueda.bind("<KeyRelease>", lambda e: cargar_tabla())
     filtros.configure(command=lambda _: cargar_tabla())
     estado_var.configure(command=lambda _: cargar_tabla())
 
-    #informacion user
-    panel_lateral= ctk.CTkFrame(ventana_gestion_users, fg_color="White", corner_radius=10)
-    panel_lateral.grid(row=1, column=1, padx=(10, 20), pady=(0,20), sticky="nsew")
+    panel_lateral = ctk.CTkFrame(ventana_gestion_users, fg_color="White", corner_radius=10)
+    panel_lateral.grid(row=1, column=1, padx=(10, 20), pady=(0, 20), sticky="nsew")
 
-    ctk.CTkLabel(panel_lateral, text="Detalles del Residente", font=("Arial", 16, "bold"), text_color=Color_texto_oscuro).pack(pady=(20,10))
-    
+    ctk.CTkLabel(panel_lateral, text="Detalles del Residente", font=("Arial", 16, "bold"),
+                 text_color=Color_texto_oscuro).pack(pady=(20, 10))
+
     photo_frame = ctk.CTkFrame(panel_lateral, fg_color="transparent", width=160, height=160)
     photo_frame.pack(pady=10, anchor="n")
     photo_frame.pack_propagate(False)
@@ -614,12 +1010,9 @@ def abrir_gestion_residentes(admin_obj):
     label_nombre.pack()
 
     def mostrar_foto(usuario):
-    # limpiar frame
         for widget in photo_frame.winfo_children():
             widget.destroy()
-
         foto_path = getattr(usuario, "foto_perfil", None)
-
         if foto_path and os.path.exists(foto_path):
             img = ctk.CTkImage(Image.open(foto_path), size=(150, 150))
             lbl = ctk.CTkLabel(photo_frame, image=img, text="")
@@ -630,43 +1023,18 @@ def abrir_gestion_residentes(admin_obj):
 
     def al_seleccionar(event):
         seleccionado = tabla_residentes.selection()
-
         if not seleccionado:
             return
-
         item = tabla_residentes.item(seleccionado[0])
         id_usuario = str(item["values"][0])
-
         if id_usuario in sistema_back.usuarios:
             usuario = sistema_back.usuarios[id_usuario]
             mostrar_foto(usuario)
+            label_id.configure(text=f"ID: {usuario.idUsuario}")
+            label_nombre.configure(text=f"Nombre: {usuario.Username}")
 
-        label_id.configure(text=f"ID: {usuario.idUsuario}")
-        label_nombre.configure(text=f"Nombre: {usuario.Username}")
-   
     tabla_residentes.bind("<<TreeviewSelect>>", al_seleccionar)
-    
-    def activar_usuario():
-        seleccionado = tabla_residentes.selection()
-    
-        if not seleccionado:
-            print("Selecciona un usuario")
-            return
 
-        item = tabla_residentes.item(seleccionado[0])
-        id_usuario = str(item["values"][0])
-
-        if id_usuario in sistema_back.usuarios:
-           usuario = sistema_back.usuarios[id_usuario]
-           abrir_formulario_usuario(usuario)
-        else:
-            print("Error: Usuario no encontrado en el sistema.")
-
-    #Botones de accion 
-    boton_activar= ctk.CTkButton(panel_lateral, text="Activar Residente", fg_color=Color_boton_oscuro, height=35, command=activar_usuario)
-    boton_activar.pack(fill="x", padx=20, pady=10)
-
-#Residente
     def abrir_formulario_usuario(usuario):
         ventana_form = ctk.CTkToplevel()
         ventana_form.title("Completar Datos")
@@ -680,31 +1048,40 @@ def abrir_gestion_residentes(admin_obj):
 
         entry_telefono = ctk.CTkEntry(ventana_form, placeholder_text="Teléfono")
         entry_telefono.pack(pady=10)
-        
+
         def guardar():
             usuario.nombre_completo = entry_nombre.get()
             usuario.direccion = entry_direccion.get()
             usuario.telefono = entry_telefono.get()
             usuario.estado = "activo"
-
             sistema_back.guardar_csv_nuevo()
             ventana_form.destroy()
             cargar_tabla()
 
         ctk.CTkButton(ventana_form, text="Guardar", command=guardar).pack(pady=20)
 
-    #Ventana de detalles del residente para admin 
-    ventana_detalles= None
+    def activar_usuario():
+        seleccionado = tabla_residentes.selection()
+        if not seleccionado:
+            print("Selecciona un usuario")
+            return
+        item = tabla_residentes.item(seleccionado[0])
+        id_usuario = str(item["values"][0])
+        if id_usuario in sistema_back.usuarios:
+            usuario = sistema_back.usuarios[id_usuario]
+            abrir_formulario_usuario(usuario)
+        else:
+            print("Error: Usuario no encontrado en el sistema.")
+
+    ventana_detalles = None
 
     def ver_detalles_usuario(idUsuario):
         nonlocal ventana_detalles
-
         if ventana_detalles is not None and ventana_detalles.winfo_exists():
             ventana_detalles.destroy()
 
         if idUsuario in sistema_back.usuarios:
-            user= sistema_back.usuarios[idUsuario]
-
+            user = sistema_back.usuarios[idUsuario]
             ventana_detalles = ctk.CTkToplevel()
             ventana_detalles.title(f"Detalles de {user.Username}")
             ventana_detalles.geometry("400x400")
@@ -724,35 +1101,33 @@ def abrir_gestion_residentes(admin_obj):
             ctk.CTkLabel(ventana_detalles, text=info_texto, justify="left", font=("Arial", 13)).pack(pady=10, padx=20)
             ctk.CTkButton(ventana_detalles, text="Cerrar", command=ventana_detalles.destroy).pack(pady=20)
 
-        
     def detectar_clic(event):
-        # Averiguar qué columna se presionó
         region = tabla_residentes.identify_region(event.x, event.y)
         if region == "cell":
             column = tabla_residentes.identify_column(event.x)
             item = tabla_residentes.identify_row(event.y)
-            
-            # La columna "Info" es la número 5
             if column == "#5":
                 idUsuario = str(tabla_residentes.item(item)['values'][0])
                 ver_detalles_usuario(idUsuario)
 
-    # Vincular el clic a la tabla
     tabla_residentes.bind("<ButtonRelease-1>", detectar_clic)
 
-    boton_activar.configure(command=activar_usuario)
+    boton_activar = ctk.CTkButton(panel_lateral, text="Activar Residente",
+                                  fg_color=Color_boton_oscuro, height=35, command=activar_usuario)
+    boton_activar.pack(fill="x", padx=20, pady=10)
 
-    boton_reset= ctk.CTkButton(panel_lateral, text="Restablecer Contraseña", fg_color=Color_boton_oscuro, height=35)
+    boton_reset = ctk.CTkButton(panel_lateral, text="Restablecer Contraseña", fg_color=Color_boton_oscuro, height=35)
     boton_reset.pack(fill="x", padx=20, pady=5)
 
-    boton_eliminar= ctk.CTkButton(panel_lateral, text="Eliminar Residente", fg_color="#8B0000", hover_color="#5E0000", height=35)
-    boton_eliminar.pack(fill="x", padx=20, pady=(5,20))
+    boton_eliminar = ctk.CTkButton(panel_lateral, text="Eliminar Residente",
+                                   fg_color="#8B0000", hover_color="#5E0000", height=35)
+    boton_eliminar.pack(fill="x", padx=20, pady=(5, 20))
 
 # ===========================
 # Ventana registro
 # ===========================
+
 def abrir_registro():
-     # Ventana de registro de nuevos usuarioos (actualizada)
     ventana_menu.withdraw()
     ventana_reg = ctk.CTkToplevel(ventana_principal)
     ventana_reg.title("Registro")
@@ -776,7 +1151,7 @@ def abrir_registro():
 
     def ejecutar_registro():
         nombre = entry_nombre.get()
-        correo= entry_correo.get()
+        correo = entry_correo.get()
         password = entry_pass.get()
         tipo = tipo_var.get()
         if nombre == "" or password == "":
@@ -790,14 +1165,11 @@ def abrir_registro():
         else:
             print("El usuario ya existe.")
 
-    ctk.CTkButton(ventana_reg, 
-                  text="Acceso", 
-                  fg_color=Color_boton_oscuro, 
-                  command=ejecutar_registro
-                  ).pack(pady=30)
+    ctk.CTkButton(ventana_reg, text="Acceso", fg_color=Color_boton_oscuro,
+                  command=ejecutar_registro).pack(pady=30)
 
 #==============================================
-# La configuracion de ventana de usuario xdddd
+# Configuración de ventana principal
 #==============================================
 
 ventana_principal = ctk.CTk()
@@ -805,26 +1177,20 @@ ventana_principal.title("SAC - Inicio")
 ventana_principal.geometry("500x400")
 ventana_principal.resizable(False, False)
 
-
 try:
-    #Cargar imagen de fondo sin importar la dirección 
     carpeta_base = os.path.dirname(__file__)
     ruta_fondo = os.path.join(carpeta_base, "logosac.png")
-
     fondo_img = ctk.CTkImage(Image.open(ruta_fondo), size=(500, 400))
     label_fondo = ctk.CTkLabel(ventana_principal, image=fondo_img, text="")
     label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
 except:
     ventana_principal.configure(fg_color=Color_fondo)
 
-boton_inicio = ctk.CTkButton(ventana_principal, 
-                             text="WELCOME TO THE\nCONDOMINIUM MANAGEMENT SYSTEM", 
-                             fg_color="#162440", 
-                             text_color="white", 
-                             font=("Arial", 14, "bold"), 
-                             width=300, 
-                             height=80, 
-                             corner_radius=15, 
+boton_inicio = ctk.CTkButton(ventana_principal,
+                             text="WELCOME TO THE\nCONDOMINIUM MANAGEMENT SYSTEM",
+                             fg_color="#162440", text_color="white",
+                             font=("Arial", 14, "bold"),
+                             width=300, height=80, corner_radius=15,
                              command=abrir_menu)
 boton_inicio.place(relx=0.5, rely=0.55, anchor=tk.CENTER)
 
@@ -836,91 +1202,55 @@ ventana_menu.configure(fg_color=Color_fondo)
 ventana_menu.withdraw()
 
 try:
-    #Cargar imagen de fondo sin importar la dirección
     carpeta_base = os.path.dirname(__file__)
     ruta_logo = os.path.join(carpeta_base, "logo.png")
-
     logo_img = ctk.CTkImage(Image.open(ruta_logo), size=(150, 100))
     label_logo = ctk.CTkLabel(ventana_menu, image=logo_img, text="")
     label_logo.pack(pady=(30, 10))
 except:
-    ctk.CTkLabel(ventana_menu, 
-                 text="SAC", 
-                 font=("Arial", 40, "bold"), 
-                 text_color=Color_boton_oscuro
-                 ).pack(pady=20)
+    ctk.CTkLabel(ventana_menu, text="SAC", font=("Arial", 40, "bold"),
+                 text_color=Color_boton_oscuro).pack(pady=20)
 
-ctk.CTkLabel(ventana_menu, 
-             text="Seleccione una opción", 
-             font=("Roboto", 24), 
-             text_color="black"
-             ).pack(pady=(0, 20))
+ctk.CTkLabel(ventana_menu, text="Seleccione una opción", font=("Roboto", 24), text_color="black").pack(pady=(0, 20))
 
 frame_botones = ctk.CTkFrame(ventana_menu, fg_color="transparent")
 frame_botones.pack(expand=True)
 
-# funcion para cargar los iconos sin tener que cambiar la ruta de las imagenes cada vez que se ejecute el proyecto en otra computadora
-def cargar_icono ( nombre_archivo):
+def cargar_icono(nombre_archivo):
     try:
         carpeta_iconos = os.path.join(os.path.dirname(__file__), "iconos")
-        ruta= os.path.join(carpeta_iconos, nombre_archivo)
+        ruta = os.path.join(carpeta_iconos, nombre_archivo)
         img = Image.open(ruta)
         return ctk.CTkImage(img, size=(30, 30))
     except FileNotFoundError:
         print(f"Error: El archivo '{nombre_archivo}' no se encontró en la carpeta ")
         return None
 
-icono_usuario = cargar_icono("icono_usuario.png")
-icono_admin = cargar_icono("icono_admin.png")
+icono_usuario  = cargar_icono("icono_usuario.png")
+icono_admin    = cargar_icono("icono_admin.png")
 icono_registro = cargar_icono("icono_registro.png")
 
-
-
-# Botones del menu
-btn_usuario = ctk.CTkButton(frame_botones, 
-                            text="Usuario", 
-                            fg_color=Color_boton_oscuro, 
-                            width=320, 
-                            height=45, 
-                            corner_radius=32,  
-                            compound="right",
-                            font=("Arial", 14, "bold"),    
-                            image=icono_usuario,                        
+btn_usuario = ctk.CTkButton(frame_botones, text="Usuario", fg_color=Color_boton_oscuro,
+                            width=320, height=45, corner_radius=32, compound="right",
+                            font=("Arial", 14, "bold"), image=icono_usuario,
                             command=abrir_login_usuario)
 btn_usuario.pack(pady=10)
 
-# En la configuración de ventana_menu
-btn_admin = ctk.CTkButton(frame_botones, 
-                          text="Administrador", 
-                          fg_color=Color_boton_oscuro, 
-                          width=320, height=45, corner_radius=32, 
-                          font=("Arial", 14, "bold"), 
-                          image=icono_admin,
-                          command=abrir_login_usuario) # <-- Ahora lleva al login
+btn_admin = ctk.CTkButton(frame_botones, text="Administrador", fg_color=Color_boton_oscuro,
+                          width=320, height=45, corner_radius=32,
+                          font=("Arial", 14, "bold"), image=icono_admin,
+                          command=abrir_login_usuario)
 btn_admin.pack(pady=10)
 
-btn_registro = ctk.CTkButton(frame_botones, 
-                             text="Registro", 
-                             fg_color=Color_boton_oscuro, 
-                             width=320, 
-                             height=45, 
-                             corner_radius=32, 
-                             compound="right",
-                             font=("Arial", 14, "bold"), 
-                             image=icono_registro,
+btn_registro = ctk.CTkButton(frame_botones, text="Registro", fg_color=Color_boton_oscuro,
+                             width=320, height=45, corner_radius=32, compound="right",
+                             font=("Arial", 14, "bold"), image=icono_registro,
                              command=abrir_registro)
 btn_registro.pack(pady=10)
 
-
-ctk.CTkButton(
-    ventana_menu, 
-    text="← Volver al inicio", 
-    fg_color="transparent", 
-    text_color=Color_boton_oscuro,
-    hover_color="#D1F2EB", 
-    width=100, 
-    command=volver_inicio
-    ).pack(pady=20)
+ctk.CTkButton(ventana_menu, text="← Volver al inicio", fg_color="transparent",
+              text_color=Color_boton_oscuro, hover_color="#D1F2EB",
+              width=100, command=volver_inicio).pack(pady=20)
 
 if __name__ == "__main__":
     # Esto asegura que todo el proceso de python muera

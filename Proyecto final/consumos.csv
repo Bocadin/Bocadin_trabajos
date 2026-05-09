@@ -1,1 +1,8 @@
-idConsumo,cantidad,fecha,servicio_id,casa_id
+idConsumo,cantidad,fecha,servicio_id,usuario_id,estado
+2,1.0,2026-05-07,3,,pendiente
+3,5.0,2026-05-07,2,,pendiente
+4,4.0,2026-05-07,2,1,pendiente
+5,7.0,2026-05-07,3,4,pendiente
+6,10.0,2026-05-07,2,3,pagado
+7,6.0,2026-05-07,2,3,pagado
+8,96.0,2026-05-07,2,4,pendiente
