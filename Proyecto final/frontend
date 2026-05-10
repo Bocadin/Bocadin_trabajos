@@ -7,7 +7,6 @@ import shutil
 from tkinter import filedialog
 from backend import *
 
-
 sistema_back = SistemaGestionResidentes()
 
 #==========================
@@ -212,9 +211,10 @@ def abrir_panel_usuario(usuario_obj):
     fila_info("ID",     datos["idUsuario"])
     fila_info("Nombre", datos["nombre_completo"])
     fila_info("Tipo",   datos["tipoUsuario"])
-    fila_info("Foto",   "Cargada ✅" if datos["foto_perfil"] and os.path.exists(datos["foto_perfil"]) else "Sin foto")
+    fila_info("Dirección" ,  datos["direccion"])
+    fila_info("Teléfono", datos ["telefono"]) 
 
-    ctk.CTkFrame(info_frame, height=1, fg_color="#E0E0E0").pack(fill="x", padx=20, pady=(15, 0))
+    ctk.CTkFrame(info_frame, height=1, fg_color="#E0E0E0").pack(fill="x", padx=20, pady=(5, 0))
 
     # Opciones
     opciones = [
@@ -904,6 +904,7 @@ def abrir_login_usuario():
 # ===========================
 
 def abrir_gestion_residentes(admin_obj):
+
     ventana_gestion_users = ctk.CTkToplevel(ventana_principal)
     ventana_gestion_users.title("SAC - Gestión de Residentes")
     ventana_gestion_users.geometry("1200x600")
@@ -913,14 +914,19 @@ def abrir_gestion_residentes(admin_obj):
     ventana_gestion_users.grid_columnconfigure(1, weight=1)
     ventana_gestion_users.grid_rowconfigure(1, weight=1)
 
+    # FRAME SUPERIOR
     frame_superior = ctk.CTkFrame(ventana_gestion_users, fg_color="transparent", corner_radius=10, height=100)
     frame_superior.grid(row=0, column=0, columnspan=2, padx=20, pady=10, sticky="nsew")
-    ctk.CTkButton(frame_superior, text="← Volver", fg_color="#8B0000",
-                  command=lambda: [ventana_gestion_users.destroy(), abrir_panel_admin(admin_obj)]
-                  ).place(x=900, y=10)
+    
+    def volver_admin():
+        if (ventana_detalles is not None and ventana_detalles.winfo_exists()):
+            ventana_detalles.destroy()
+        
+        ventana_gestion_users.destroy()
+        abrir_panel_admin(admin_obj)
 
-    ctk.CTkLabel(frame_superior, text="Gestión de Residentes", font=("Arial", 12, "bold"),
-                 text_color=Color_texto_oscuro).place(x=20, y=10)
+    ctk.CTkButton(frame_superior, text="← Volver", fg_color="#8B0000", command= volver_admin).place(x=1000, y=40)
+    ctk.CTkLabel(frame_superior, text="Gestión de Residentes", font=("Arial", 12, "bold"), text_color=Color_texto_oscuro).place(x=20, y=10)
 
     entry_busqueda = ctk.CTkEntry(frame_superior, placeholder_text="Buscar por nombre o ID", width=300)
     entry_busqueda.place(x=20, y=40)
@@ -933,71 +939,28 @@ def abrir_gestion_residentes(admin_obj):
     estado_var.place(x=580, y=40)
     estado_var.set("Todos")
 
+    # FRAME CENTRO
     frame_centro = ctk.CTkFrame(ventana_gestion_users, fg_color="transparent", corner_radius=10)
     frame_centro.grid(row=1, column=0, padx=(20, 10), pady=(0, 20), sticky="nsew")
 
-    ctk.CTkLabel(frame_centro, text="Lista de Residentes", font=("Arial", 14, "bold"),
-                 text_color=Color_texto_oscuro).pack(anchor="w", padx=20, pady=10)
+    ctk.CTkLabel(frame_centro, text="Lista de Residentes", font=("Arial", 14, "bold"), text_color=Color_texto_oscuro).pack(anchor="w", padx=20, pady=10)
 
-    estilo = ttk.Style()
-    estilo.theme_use("classic")
-    estilo.configure("Treeview", background="#E0E0E0", fielbackground="#E0E0E0", rowheight=35)
-    estilo.map("Treeview", background=[("selected", "#196D39")])
-
-    columnas = ("ID", "Nombre", "Tipo", "Estado", "Informacion")
-    tabla_residentes = ttk.Treeview(frame_centro, columns=columnas, show="headings")
-
-    tabla_residentes.heading("ID", text="ID")
-    tabla_residentes.heading("Nombre", text="Nombre")
-    tabla_residentes.heading("Tipo", text="Tipo")
-    tabla_residentes.heading("Estado", text="Estado")
-    tabla_residentes.heading("Informacion", text="Detalles")
+    # CREACION TABLA
+    tabla_residentes = ctk.CTkScrollableFrame(frame_centro, fg_color="white")
     tabla_residentes.pack(expand=True, fill="both", padx=20, pady=20)
 
-    def cargar_tabla():
-        tabla_residentes.delete(*tabla_residentes.get_children())
+    header = ctk.CTkFrame(tabla_residentes, fg_color=Color_boton_oscuro)
+    header.pack(fill="x", pady=(0, 5))
 
-        texto_busqueda = entry_busqueda.get().lower()
-        tipo_filtro = filtros.get()
-        estado_filtro = estado_var.get()
+    titulos = ["ID", "Nombre", "Tipo", "Estado", "Detalles"]
+    for i, titulo in enumerate(titulos):
+        ctk.CTkLabel(header, text=titulo, font=("Arial", 14, "bold"), text_color= "#FFFFFF", width=120).grid( row=0, column=i, padx=10, pady=10)
 
-        for u in sistema_back.usuarios.values():
-            if u.tipoUsuario == "admin":
-                continue
-
-            if texto_busqueda:
-                if texto_busqueda not in u.Username.lower() and texto_busqueda not in str(u.idUsuario):
-                    continue
-
-            if tipo_filtro != "Todos":
-                if tipo_filtro == "Propietarios" and u.tipoUsuario != "Propietario":
-                    continue
-                if tipo_filtro == "Inquilinos" and u.tipoUsuario != "Inquilino":
-                    continue
-
-            if estado_filtro != "Todos":
-                if u.estado.lower() != estado_filtro.lower():
-                    continue
-
-            tabla_residentes.insert("", "end", values=(
-                u.idUsuario,
-                u.Username,
-                u.tipoUsuario,
-                u.estado,
-                "👁️"
-            ))
-
-    cargar_tabla()
-
-    entry_busqueda.bind("<KeyRelease>", lambda e: cargar_tabla())
-    filtros.configure(command=lambda _: cargar_tabla())
-    estado_var.configure(command=lambda _: cargar_tabla())
-
+    # PANEL LATERAL
     panel_lateral = ctk.CTkFrame(ventana_gestion_users, fg_color="White", corner_radius=10)
     panel_lateral.grid(row=1, column=1, padx=(10, 20), pady=(0, 20), sticky="nsew")
 
-    ctk.CTkLabel(panel_lateral, text="Detalles del Residente", font=("Arial", 16, "bold"),
-                 text_color=Color_texto_oscuro).pack(pady=(20, 10))
+    ctk.CTkLabel(panel_lateral, text="Detalles del Residente", font=("Arial", 16, "bold"), text_color=Color_texto_oscuro).pack(pady=(20, 10))
 
     photo_frame = ctk.CTkFrame(panel_lateral, fg_color="transparent", width=160, height=160)
     photo_frame.pack(pady=10, anchor="n")
@@ -1009,32 +972,157 @@ def abrir_gestion_residentes(admin_obj):
     label_nombre = ctk.CTkLabel(panel_lateral, text="Nombre: ---", font=("Arial", 12))
     label_nombre.pack()
 
+    usuario_seleccionado = None
+    fila_seleccionada = None
+
     def mostrar_foto(usuario):
+
         for widget in photo_frame.winfo_children():
             widget.destroy()
         foto_path = getattr(usuario, "foto_perfil", None)
+
         if foto_path and os.path.exists(foto_path):
+
             img = ctk.CTkImage(Image.open(foto_path), size=(150, 150))
+
             lbl = ctk.CTkLabel(photo_frame, image=img, text="")
             lbl.image = img
             lbl.pack()
+
         else:
             ctk.CTkLabel(photo_frame, text="👤", font=("Arial", 80)).pack()
 
-    def al_seleccionar(event):
-        seleccionado = tabla_residentes.selection()
-        if not seleccionado:
-            return
-        item = tabla_residentes.item(seleccionado[0])
-        id_usuario = str(item["values"][0])
-        if id_usuario in sistema_back.usuarios:
-            usuario = sistema_back.usuarios[id_usuario]
-            mostrar_foto(usuario)
-            label_id.configure(text=f"ID: {usuario.idUsuario}")
-            label_nombre.configure(text=f"Nombre: {usuario.Username}")
+    def seleccionar_usuario(usuario, fila):
+        nonlocal usuario_seleccionado
+        nonlocal fila_seleccionada
 
-    tabla_residentes.bind("<<TreeviewSelect>>", al_seleccionar)
+        usuario_seleccionado = usuario
 
+        # Restaurar color anterior
+        if fila_seleccionada is not None:
+            fila_seleccionada.configure(fg_color="#F5F5F5")
+
+        # Nueva fila seleccionada
+        fila_seleccionada = fila
+        fila.configure(fg_color="#B7E4C7")
+
+        # Mostrar datos laterales
+        mostrar_foto(usuario)
+        label_id.configure(text=f"ID: {usuario.idUsuario}")
+        label_nombre.configure(text=f"Nombre: {usuario.Username}")
+
+    ventana_detalles = None
+
+    def ver_detalles_usuario(idUsuario):
+        nonlocal ventana_detalles
+
+        if (
+            ventana_detalles is not None
+            and ventana_detalles.winfo_exists()
+        ):
+            ventana_detalles.destroy()
+
+        if idUsuario in sistema_back.usuarios:
+
+            user = sistema_back.usuarios[idUsuario]
+
+            ventana_detalles = ctk.CTkToplevel()
+            ventana_detalles.title(f"Detalles de {user.Username}")
+            ventana_detalles.geometry("400x400")
+            
+            ventana_detalles.lift()
+            ventana_detalles.attributes("-topmost", True)
+            ventana_detalles.after(100, lambda: ventana_detalles.attributes("-topmost", False))
+
+            ctk.CTkLabel(ventana_detalles, text="FICHA DEL RESIDENTE", font=("Arial", 18, "bold")).pack(pady=20)
+            info_texto = f"""
+                        ID Usuario: {user.idUsuario}
+                        Apodo: {user.Username}
+                        ----------------------------------
+                        Nombre Real: {getattr(user, 'nombre_completo', 'No registrado')}
+                        Dirección: {getattr(user, 'direccion', 'No registrada')}
+                        Teléfono: {getattr(user, 'telefono', 'No registrado')}
+                        ----------------------------------
+                        Estado: {user.estado}
+                        Tipo: {user.tipoUsuario}"""
+
+            ctk.CTkLabel(ventana_detalles, text=info_texto, justify="left", font=("Arial", 13)).pack(pady=10, padx=20)
+            ctk.CTkButton(ventana_detalles, text="Cerrar", command=ventana_detalles.destroy).pack(pady=20)
+
+    def cargar_tabla():
+
+        for widget in tabla_residentes.winfo_children():
+
+            if widget != header:
+                widget.destroy()
+
+        texto_busqueda = entry_busqueda.get().lower()
+        tipo_filtro = filtros.get()
+        estado_filtro = estado_var.get()
+
+        for u in sistema_back.usuarios.values():
+
+            if u.tipoUsuario == "admin":
+                continue
+
+            if texto_busqueda:
+
+                if (
+                    texto_busqueda not in u.Username.lower()
+                    and texto_busqueda not in str(u.idUsuario)
+                ):
+                    continue
+
+            if tipo_filtro != "Todos":
+
+                if (
+                    tipo_filtro == "Propietarios"
+                    and u.tipoUsuario != "Propietario"
+                ):
+                    continue
+
+                if (
+                    tipo_filtro == "Inquilinos"
+                    and u.tipoUsuario != "Inquilino"
+                ):
+                    continue
+
+            if estado_filtro != "Todos":
+
+                if u.estado.lower() != estado_filtro.lower():
+                    continue
+
+            #FILAS
+            fila = ctk.CTkFrame(tabla_residentes, fg_color="#F5F5F5", corner_radius=8)
+            fila.pack(fill="x", pady=2, padx=2)
+
+            id_fila = ctk.CTkLabel(fila, text=u.idUsuario, width=120)
+            id_fila.grid (row= 0, column= 0, padx= 10, pady= 10)
+
+            nombre_fila = ctk.CTkLabel(fila, text=u.Username, width=120)
+            nombre_fila.grid(row= 0, column = 1, padx = 10)
+
+
+            tipo_fila = ctk.CTkLabel(fila, text=u.tipoUsuario,width=120)
+            tipo_fila.grid (row = 0, column = 2, padx= 10)
+
+            estado_fila = ctk.CTkLabel(fila, text=u.estado, width=120)
+            estado_fila.grid (row = 0, column = 3, padx= 10)
+
+            widgets_fila = [fila, id_fila, nombre_fila, tipo_fila, estado_fila]
+            
+            for widget in widgets_fila:
+                widget.bind("<Button-1>",lambda e, user=u, f=fila: seleccionar_usuario(user, f))
+
+            boton_detalles = ctk.CTkButton(fila, text="👁️", width=35, height=35, fg_color=Color_boton_oscuro, command=lambda idU=u.idUsuario: ver_detalles_usuario(str(idU)))
+            boton_detalles.grid(row=0, column=4, padx=10)
+
+    cargar_tabla()
+    entry_busqueda.bind("<KeyRelease>", lambda e: cargar_tabla())
+    filtros.configure(command=lambda _: cargar_tabla())
+    estado_var.configure(command=lambda _: cargar_tabla())
+
+    #VENTANA FORMULARIO
     def abrir_formulario_usuario(usuario):
         ventana_form = ctk.CTkToplevel()
         ventana_form.title("Completar Datos")
@@ -1056,71 +1144,27 @@ def abrir_gestion_residentes(admin_obj):
             usuario.estado = "activo"
             sistema_back.guardar_csv_nuevo()
             ventana_form.destroy()
+
             cargar_tabla()
 
         ctk.CTkButton(ventana_form, text="Guardar", command=guardar).pack(pady=20)
 
     def activar_usuario():
-        seleccionado = tabla_residentes.selection()
-        if not seleccionado:
+        nonlocal usuario_seleccionado
+
+        if usuario_seleccionado is None:
             print("Selecciona un usuario")
             return
-        item = tabla_residentes.item(seleccionado[0])
-        id_usuario = str(item["values"][0])
-        if id_usuario in sistema_back.usuarios:
-            usuario = sistema_back.usuarios[id_usuario]
-            abrir_formulario_usuario(usuario)
-        else:
-            print("Error: Usuario no encontrado en el sistema.")
+        abrir_formulario_usuario(usuario_seleccionado)
 
-    ventana_detalles = None
-
-    def ver_detalles_usuario(idUsuario):
-        nonlocal ventana_detalles
-        if ventana_detalles is not None and ventana_detalles.winfo_exists():
-            ventana_detalles.destroy()
-
-        if idUsuario in sistema_back.usuarios:
-            user = sistema_back.usuarios[idUsuario]
-            ventana_detalles = ctk.CTkToplevel()
-            ventana_detalles.title(f"Detalles de {user.Username}")
-            ventana_detalles.geometry("400x400")
-            ctk.CTkLabel(ventana_detalles, text="FICHA DEL RESIDENTE", font=("Arial", 18, "bold")).pack(pady=20)
-
-            info_texto = f"""
-            ID Usuario: {user.idUsuario}
-            Apodo: {user.Username}
-            ----------------------------------
-            Nombre Real: {getattr(user, 'nombre_completo', 'No registrado')}
-            Dirección: {getattr(user, 'direccion', 'No registrada')}
-            Teléfono: {getattr(user, 'telefono', 'No registrado')}
-            ----------------------------------
-            Estado: {user.estado}
-            Tipo: {user.tipoUsuario}
-            """
-            ctk.CTkLabel(ventana_detalles, text=info_texto, justify="left", font=("Arial", 13)).pack(pady=10, padx=20)
-            ctk.CTkButton(ventana_detalles, text="Cerrar", command=ventana_detalles.destroy).pack(pady=20)
-
-    def detectar_clic(event):
-        region = tabla_residentes.identify_region(event.x, event.y)
-        if region == "cell":
-            column = tabla_residentes.identify_column(event.x)
-            item = tabla_residentes.identify_row(event.y)
-            if column == "#5":
-                idUsuario = str(tabla_residentes.item(item)['values'][0])
-                ver_detalles_usuario(idUsuario)
-
-    tabla_residentes.bind("<ButtonRelease-1>", detectar_clic)
-
-    boton_activar = ctk.CTkButton(panel_lateral, text="Activar Residente",
-                                  fg_color=Color_boton_oscuro, height=35, command=activar_usuario)
+    #BOTONES
+    boton_activar = ctk.CTkButton(panel_lateral, text="Activar Residente", fg_color=Color_boton_oscuro, height=35, command=activar_usuario)
     boton_activar.pack(fill="x", padx=20, pady=10)
 
     boton_reset = ctk.CTkButton(panel_lateral, text="Restablecer Contraseña", fg_color=Color_boton_oscuro, height=35)
     boton_reset.pack(fill="x", padx=20, pady=5)
 
-    boton_eliminar = ctk.CTkButton(panel_lateral, text="Eliminar Residente",
-                                   fg_color="#8B0000", hover_color="#5E0000", height=35)
+    boton_eliminar = ctk.CTkButton(panel_lateral, text="Eliminar Residente", fg_color="#8B0000", hover_color="#5E0000", height=35)
     boton_eliminar.pack(fill="x", padx=20, pady=(5, 20))
 
 # ===========================
