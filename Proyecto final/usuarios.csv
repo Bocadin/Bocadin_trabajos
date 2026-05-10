@@ -1,7 +1,7 @@
 idUsuario,Username,contraseña,tipoUsuario,correo,nombre_completo,direccion,telefono,estado,foto_perfil
-admin,Admin SAC,1234,admin,admin@sac.com,Admin Principal,Oficina Central,000000,activo,admin_icon.png
+admin,Admin SAC,1234,admin,admin@sac.com,Admin Principal,Oficina Central,000000,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\admin_icon.png
 1,Jet,1234,Propietario,jet@gmail.com,Jet C,Calle las nieves #58,123456789,activo,"c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\1_1_Haluuuu, en mi insta tengo diwujitos míos y mi cuenta de edits ᨐฅ (me ayudaria un shingo su apoyo)_3.jpg"
 2,Carlitos Lettuce,1234,Inquilino,jet@gmail.com,Carlitos Lechuga,Calle de carlitos,12543223,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\2_2_Carlitos Lechuga.jpg
 3,Pablito,1234,Propietario,jet@gmail.com,Pablo Juan,Calle Residencia,1234654,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\3_Cute ginger kitten pfp.jpg
 4,Pablita,1234,Propietario,jet@gmail.com,Pablita Carla,Calle de Pablita,12343214,activo,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\fotos_perfil\4_⊹　 ︶︶　 ୨୧　 ︶︶　 ⊹_                ८    White angel bunny !!   ꔫა _               Pfp ♡   Icon !!.jpg
-5,Duvalin,1234,Inquilino,duvalin@gmail.com,Sin Nombre,Sin Dirección,Sin Teléfono,pendiente,admin_default.png
+5,Duvalin,1234,Inquilino,duvalin@gmail.com,Sin Nombre,Sin Dirección,Sin Teléfono,pendiente,

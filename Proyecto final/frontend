@@ -174,12 +174,16 @@ def abrir_panel_usuario(usuario_obj):
     user_frame.pack(pady=40, padx=20, fill="x")
 
     # Foto de perfil
-    foto_path = getattr(usuario_obj, "foto_perfil", None) or "admin_default.png"
+    foto_path = getattr(usuario_obj, "foto_perfil", None)
+    
     try:
-        img_pil = Image.open(foto_path)
-        img = ctk.CTkImage(img_pil, size=(150, 150))
-        lbl_foto = ctk.CTkLabel(user_frame, image=img, text="")
-        lbl_foto.pack(pady=10)
+        if foto_path and os.path.exists(foto_path):
+            img_pil = Image.open(foto_path)
+            img = ctk.CTkImage(img_pil, size=(150, 150))
+            lbl_foto = ctk.CTkLabel(user_frame, image=img, text="")
+            lbl_foto.pack(pady=10)
+        else:
+            raise FileNotFoundError
     except:
         ctk.CTkLabel(user_frame, text="👤", font=("Arial", 60)).pack(pady=10)
 
@@ -753,9 +757,14 @@ def abrir_panel_admin(usuario_obj):
     frame_perfil = ctk.CTkFrame(ventana_admin, fg_color="#162440", width=360, corner_radius=0)
     frame_perfil.pack(side="left", fill="y")
 
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    foto_path = getattr(usuario_obj, "foto_perfil", None)
+    if not foto_path or not os.path.exists(foto_path):
+        foto_path = os.path.join(base_dir, "admin_icon.png")
+
     try:
-        if os.path.exists(usuario_obj.foto_perfil):
-            img_p = ctk.CTkImage(Image.open(usuario_obj.foto_perfil), size=(140, 140))
+        if os.path.exists(foto_path):
+            img_p = ctk.CTkImage(Image.open(foto_path), size=(140, 140))
             ctk.CTkLabel(frame_perfil, image=img_p, text="").pack(pady=(60, 20), padx=40)
         else:
             raise Exception("No existe")

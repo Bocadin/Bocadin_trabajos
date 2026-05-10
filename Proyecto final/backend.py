@@ -15,7 +15,7 @@ class Usuario:
         self.direccion = direccion if direccion else "Sin Dirección"
         self.telefono = telefono if telefono else "Sin Teléfono"
         self.estado = estado if estado else "pendiente"
-        self.foto_perfil = foto_perfil if foto_perfil else "admin_default.png"
+        self.foto_perfil = foto_perfil
 
     def consultar_perfil(self):
         return {
@@ -84,7 +84,7 @@ class Administrador(Usuario):
         super().__init__(
             idUsuario, nombre, contraseña, correo, "admin",
             "Administrador", "Oficina Central", "0000000000",
-            "activo", foto_perfil or "admin_icon.png"
+            "activo", foto_perfil or os.path.join(os.path.dirname(os.path.abspath(__file__)), "admin_icon.png")
         )
 
     def activar_usuario(self, sistema, id_usuario, nombre_real, direccion, telefono):
@@ -130,6 +130,16 @@ class SistemaGestionResidentes:
         Esto garantiza que el tipo quede reflejado en el objeto desde el arranque.
         """
         tipo = row.get('tipoUsuario', 'residente')
+        foto_perfil = row.get('foto_perfil')
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        if foto_perfil and not os.path.isabs(foto_perfil):
+            # Solo convertimos a absoluta si no es una cadena vacía o nula
+            foto_perfil = os.path.join(base_dir, foto_perfil)
+        
+        # Si sigue siendo vacío y es admin, le ponemos el icono por defecto
+        if not foto_perfil and tipo == "admin":
+            foto_perfil = os.path.join(base_dir, "admin_icon.png")
+
         kwargs = dict(
             idUsuario       = row['idUsuario'],
             Username        = row['Username'],
@@ -139,7 +149,7 @@ class SistemaGestionResidentes:
             direccion       = row.get('direccion', ""),
             telefono        = row.get('telefono', ""),
             estado          = row.get('estado', "pendiente"),
-            foto_perfil     = row.get('foto_perfil', "admin_default.png"),
+            foto_perfil     = foto_perfil,
         )
         if tipo == "admin":
             # Eliminamos tipoUsuario de kwargs si existiera, aunque aquí no está
@@ -164,9 +174,11 @@ class SistemaGestionResidentes:
 
     def asegurar_admin_default(self):
         if "admin" not in self.usuarios:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            ruta_admin_foto = os.path.join(base_dir, "admin_icon.png")
             admin = Usuario("admin", "Admin SAC", "1234", "admin@sac.com", "admin",
                             "Admin Principal", "Oficina Central", "000000",
-                            "activo", "admin_icon.png")
+                            "activo", ruta_admin_foto)
             self.usuarios["admin"] = admin
             self.guardar_csv_nuevo()
 
