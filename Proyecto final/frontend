@@ -91,10 +91,15 @@ def editar_perfil(usuario, ventana_padre):
     ctk.CTkLabel(ventana_editar, text="Editar Perfil", font=("Arial", 18, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
 
     entry_nombre = ctk.CTkEntry(ventana_editar, placeholder_text="Nuevo nombre", width=280)
-    entry_nombre.pack(pady=10)
+    entry_nombre.pack(pady=5)
+    entry_nombre.insert(0, usuario.Username)
+
+    entry_correo = ctk.CTkEntry(ventana_editar, placeholder_text="Nuevo correo", width=280)
+    entry_correo.pack(pady=5)
+    entry_correo.insert(0, getattr(usuario, "correo", ""))
 
     entry_pass = ctk.CTkEntry(ventana_editar, placeholder_text="Nueva contraseña", show="*", width=280)
-    entry_pass.pack(pady=10)
+    entry_pass.pack(pady=5)
 
     ruta_foto = {"path": getattr(usuario, "foto", None) or getattr(usuario, "foto_perfil", None)}
 
@@ -124,6 +129,7 @@ def editar_perfil(usuario, ventana_padre):
     def guardar_cambios():
         usuario.actualizar_perfil(
             nuevo_Username=entry_nombre.get() or None,
+            nuevo_correo=entry_correo.get() or None,
             nueva_contraseña=entry_pass.get() or None,
             nueva_foto=ruta_foto["path"]
         )
@@ -193,7 +199,7 @@ def abrir_panel_usuario(usuario_obj):
             editar_perfil(usuario_obj, ventana_panel)
 
     botones_nav = [
-        ("👤 Editar Perfil", "Editar Perfil")
+        ("👤 Editar Perfil", "Editar Perfil"),
         ("📄 Mis Recibos", "Recibos"),
         ("💳 Realizar Pagos", "Pagos"),
         ("⚠️ Reportes", "Reportes")
@@ -1231,10 +1237,10 @@ def abrir_registro():
         correo = entry_correo.get()
         password = entry_pass.get()
         tipo = tipo_var.get()
-        if nombre == "" or password == "":
+        if nombre == "" or password == "" or correo == "":
             print("Error: Campos vacíos")
             return
-        usuario_creado = sistema_back.registroforAdmin(nombre, password, tipo)
+        usuario_creado = sistema_back.registroforAdmin(nombre, password, correo, tipo)
         if usuario_creado:
             mostrar_exito()
             ventana_reg.destroy()

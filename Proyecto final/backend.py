@@ -28,10 +28,11 @@ class Usuario:
             "foto_perfil":     self.foto_perfil,
         }
 
-    def actualizar_perfil(self, nuevo_Username=None, nueva_foto=None, nueva_contraseña=None):
+    def actualizar_perfil(self, nuevo_Username=None, nueva_foto=None, nueva_contraseña=None, nuevo_correo=None):
         if nuevo_Username:   self.Username   = nuevo_Username
         if nueva_foto:       self.foto_perfil = nueva_foto
         if nueva_contraseña: self.contraseña  = nueva_contraseña
+        if nuevo_correo:     self.correo      = nuevo_correo
 
 
 class Residente(Usuario):
@@ -141,11 +142,11 @@ class SistemaGestionResidentes:
             foto_perfil     = row.get('foto_perfil', "admin_default.png"),
         )
         if tipo == "admin":
-            u = Usuario(tipoUsuario="admin", correo=kwargs["correo"], **kwargs)
+            # Eliminamos tipoUsuario de kwargs si existiera, aunque aquí no está
+            u = Usuario(tipoUsuario="admin", **kwargs)
         else:
             # propietario / inquilino / residente → instancia Residente
-            u = Residente(tipoResidente=tipo, **{k: v for k, v in kwargs.items()
-                                                  if k != 'tipoUsuario'})
+            u = Residente(tipoResidente=tipo, **kwargs)
         return u
 
     # Carga de datos
@@ -163,7 +164,7 @@ class SistemaGestionResidentes:
 
     def asegurar_admin_default(self):
         if "admin" not in self.usuarios:
-            admin = Usuario("admin", "admin", "1234", "admin@sac.com", "admin",
+            admin = Usuario("admin", "Admin SAC", "1234", "admin@sac.com", "admin",
                             "Admin Principal", "Oficina Central", "000000",
                             "activo", "admin_icon.png")
             self.usuarios["admin"] = admin
@@ -238,12 +239,12 @@ class SistemaGestionResidentes:
                         'Username':        u.Username,
                         'contraseña':      u.contraseña,
                         'tipoUsuario':     u.tipoUsuario,
+                        'correo':          u.correo,
                         'nombre_completo': u.nombre_completo,
                         'direccion':       u.direccion,
                         'telefono':        u.telefono,
                         'estado':          u.estado,
                         'foto_perfil':     u.foto_perfil,
-                        'correo':          u.correo,
                     })
             return True
         except Exception as e:
