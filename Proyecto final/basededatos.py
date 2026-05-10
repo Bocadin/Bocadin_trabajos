@@ -1,7 +1,7 @@
 import csv
 import os
 
-base_direccion = os.path.dirname(__file__)
+base_direccion = os.path.dirname(os.path.abspath(__file__))
 
 def crear_archivo(nombre, encabezados):
     ruta = os.path.join(base_direccion, nombre)
@@ -10,35 +10,70 @@ def crear_archivo(nombre, encabezados):
         with open(ruta, mode='w', newline='', encoding='utf-8') as archivo:
             writer = csv.writer(archivo)
             writer.writerow(encabezados)
+
         print(f"{ruta} creado.")
+
     else:
         print(f"{ruta} ya existe.")
 
 
 def crear_base_csv():
-    
+
+    # Usuarios
     crear_archivo("usuarios.csv", [
-        "idUsuario", "Username", "tipoUsuario", "contraseña", "nombre_completo", "direccion", "telefono", "estado", "foto_perfil"
+        "idUsuario",
+        "Username",
+        "contraseña",
+        "tipoUsuario",
+        "correo",
+        "nombre_completo",
+        "direccion",
+        "telefono",
+        "estado",
+        "foto_perfil"
     ])
 
+    # Casas
     crear_archivo("casas.csv", [
-        "idCasa", "numero", "propietario_id", "inquilino_id"
+        "idCasa",
+        "numero",
+        "propietario_id",
+        "inquilino_id"
     ])
 
+    # Servicios
     crear_archivo("servicios.csv", [
-        "idServicio", "nombre", "tipo", "tarifa"
+        "idServicio",
+        "nombre",
+        "tipo",
+        "tarifa"
     ])
 
+    # Consumos
     crear_archivo("consumos.csv", [
-        "idConsumo", "cantidad", "fecha", "servicio_id", "casa_id"
+        "idConsumo",
+        "cantidad",
+        "fecha",
+        "servicio_id",
+        "usuario_id",
+        "estado"
     ])
 
+    # Recibos
     crear_archivo("recibos.csv", [
-        "idRecibo", "usuario_id", "total", "estado"
+        "idRecibo",
+        "usuario_id",
+        "total",
+        "estado",
+        "periodo"
     ])
 
+    # Reportes
     crear_archivo("reportes.csv", [
-        "idReporte", "usuario_id", "descripcion", "fecha"
+        "idReporte",
+        "usuario_id",
+        "descripcion",
+        "fecha"
     ])
 
 

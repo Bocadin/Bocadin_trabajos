@@ -3,12 +3,13 @@ import os
 from datetime import datetime
 
 class Usuario:
-    def __init__(self, idUsuario, Username, contraseña, tipoUsuario,
+    def __init__(self, idUsuario, Username, contraseña, correo, tipoUsuario,
                  nombre_completo="", direccion="", telefono="",
                  estado="pendiente", foto_perfil=None):
         self.idUsuario = idUsuario
         self.Username = Username
         self.contraseña = contraseña
+        self.correo = correo
         self.tipoUsuario = tipoUsuario
         self.nombre_completo = nombre_completo  if nombre_completo else "Sin Nombre"
         self.direccion = direccion if direccion else "Sin Dirección"
@@ -21,6 +22,7 @@ class Usuario:
             "idUsuario":       self.idUsuario,
             "nombre_completo": self.nombre_completo,
             "tipoUsuario":     self.tipoUsuario,
+            "correo":          self.correo,
             "direccion":       self.direccion,
             "telefono":        self.telefono,
             "foto_perfil":     self.foto_perfil,
@@ -33,11 +35,10 @@ class Usuario:
 
 
 class Residente(Usuario):
-    def __init__(self, tipoResidente, idUsuario, Username, contraseña,
+    def __init__(self, tipoResidente, idUsuario, Username, contraseña, correo,
                  nombre_completo="", direccion="", telefono="",
                  estado="pendiente", foto_perfil=None):
-        super().__init__(idUsuario, Username, contraseña,
-                         tipoResidente,          # tipoUsuario = tipoResidente
+        super().__init__(idUsuario, Username, contraseña, correo, tipoResidente,
                          nombre_completo, direccion, telefono,
                          estado, foto_perfil)
         self.tipoResidente = tipoResidente
@@ -58,11 +59,29 @@ class Residente(Usuario):
             recibo.pagar()
             return pago
         return None
+    
+    #PRUEBA DE FUNCIÓN PARA USUARIO PARA MOSTRAR PAGO
+    def obtener_informacion_pago(self, sistema):
+        # Buscar consumos pendientes
+        consumos_pendientes = [c for c in sistema.consumos.values() if c.usuario_id == self.idUsuario and c.estado == "pendiente"]
+        total_pendiente = sum(c.total(sistema) for c in consumos_pendientes)
+        
+        if consumos_pendientes:
+            # Encontrar la fecha más reciente de los consumos
+            fecha_vencimiento = "25 de " + datetime.now().strftime("%B, %Y")
+        else:
+            fecha_vencimiento = "Sin pagos pendientes"
+            
+        return {
+            "fecha": fecha_vencimiento,
+            "monto": f"${total_pendiente:.2f}"
+        }
+
 
 class Administrador(Usuario):
-    def __init__(self, idUsuario, nombre, contraseña, foto_perfil=None):
+    def __init__(self, idUsuario, nombre, contraseña, correo, foto_perfil=None):
         super().__init__(
-            idUsuario, nombre, contraseña, "admin",
+            idUsuario, nombre, contraseña, correo, "admin",
             "Administrador", "Oficina Central", "0000000000",
             "activo", foto_perfil or "admin_icon.png"
         )
@@ -113,6 +132,7 @@ class SistemaGestionResidentes:
         kwargs = dict(
             idUsuario       = row['idUsuario'],
             Username        = row['Username'],
+            correo         = row.get('correo', ""), 
             contraseña      = row['contraseña'],
             nombre_completo = row.get('nombre_completo', ""),
             direccion       = row.get('direccion', ""),
@@ -121,7 +141,7 @@ class SistemaGestionResidentes:
             foto_perfil     = row.get('foto_perfil', "admin_default.png"),
         )
         if tipo == "admin":
-            u = Usuario(tipoUsuario="admin", **kwargs)
+            u = Usuario(tipoUsuario="admin", correo=kwargs["correo"], **kwargs)
         else:
             # propietario / inquilino / residente → instancia Residente
             u = Residente(tipoResidente=tipo, **{k: v for k, v in kwargs.items()
@@ -143,7 +163,7 @@ class SistemaGestionResidentes:
 
     def asegurar_admin_default(self):
         if "admin" not in self.usuarios:
-            admin = Usuario("admin", "admin", "1234", "admin",
+            admin = Usuario("admin", "admin", "1234", "admin@sac.com", "admin",
                             "Admin Principal", "Oficina Central", "000000",
                             "activo", "admin_icon.png")
             self.usuarios["admin"] = admin
@@ -207,7 +227,7 @@ class SistemaGestionResidentes:
     def guardar_csv_nuevo(self):
         """Reescribe usuarios.csv con el estado actual en memoria."""
         try:
-            campos = ['idUsuario', 'Username', 'contraseña', 'tipoUsuario',
+            campos = ['idUsuario', 'Username', 'contraseña', 'tipoUsuario', 'correo',
                       'nombre_completo', 'direccion', 'telefono', 'estado', 'foto_perfil']
             with open(self.archivo_usuarios, mode='w', newline='', encoding='utf-8') as f:
                 writer = csv.DictWriter(f, fieldnames=campos)
@@ -223,6 +243,7 @@ class SistemaGestionResidentes:
                         'telefono':        u.telefono,
                         'estado':          u.estado,
                         'foto_perfil':     u.foto_perfil,
+                        'correo':          u.correo,
                     })
             return True
         except Exception as e:
@@ -289,7 +310,7 @@ class SistemaGestionResidentes:
             return False
 
     #Gestión de usuarios
-    def registroforAdmin(self, NameUser, contraseña, tipoResidente="residente"):
+    def registroforAdmin(self, NameUser, contraseña, correonew, tipoResidente="residente"):
         """
         Registra un nuevo residente desde la pantalla de login.
         El tipo (propietario / inquilino / residente) queda guardado en el CSV.
@@ -297,7 +318,7 @@ class SistemaGestionResidentes:
         """
         # Verificar duplicado de username
         for u in self.usuarios.values():
-            if u.Username == NameUser:
+            if u.Username == NameUser and u.correo == correonew:
                 return "error_duplicado"
 
         ids = [int(u.idUsuario) for u in self.usuarios.values() if str(u.idUsuario).isdigit()]
@@ -308,6 +329,7 @@ class SistemaGestionResidentes:
             idUsuario      = nuevo_id,
             Username       = NameUser,
             contraseña     = contraseña,
+            correo         = correonew,
             nombre_completo= "",
             direccion      = "",
             telefono       = "",
@@ -316,7 +338,8 @@ class SistemaGestionResidentes:
         self.usuarios[nuevo_id] = nuevo_usuario
 
         return "exito" if self.guardar_csv_nuevo() else "error_guardado"
-
+    
+    #Modificar datos
     def actualizarContraseña(self, nombre_username, nueva_contraseña):
         for u in self.usuarios.values():
             if u.Username == nombre_username:
