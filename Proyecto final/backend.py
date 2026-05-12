@@ -109,12 +109,14 @@ class SistemaGestionResidentes:
         self.archivo_consumos  = os.path.join(base_dir, "consumos.csv")
         self.archivo_casas     = os.path.join(base_dir, "casas.csv")
         self.archivo_recibos   = os.path.join(base_dir, "recibos.csv")
+        self.archivo_reportes  = os.path.join(base_dir, "reportes.csv")
 
         self.usuarios  = {}
         self.servicios = {}
         self.consumos  = {}
         self.casas     = {}
         self.recibos   = {}
+        self.reportes  = {}
 
         self.cargar_usuarios()
         self.asegurar_admin_default()
@@ -122,6 +124,7 @@ class SistemaGestionResidentes:
         self.cargar_consumos()
         self.cargar_casas()
         self.cargar_recibos()
+        self.cargar_reportes()
 
     # Helpers de carga
     def _instanciar_usuario(self, row):
@@ -236,6 +239,26 @@ class SistemaGestionResidentes:
         except Exception as e:
             print(f"Error al cargar recibos: {e}")
 
+    def cargar_reportes(self):
+        if not os.path.exists(self.archivo_reportes):
+            return
+        try:
+            with open(self.archivo_reportes, mode='r', newline='', encoding='utf-8') as f:
+                for row in csv.DictReader(f):
+                    rep = Reporte(
+                        row['idReporte'], 
+                        row['usuario_id'], 
+                        row['descripcion'],
+                        row.get('titulo', ''),
+                        row.get('tipo', 'Mantenimiento'),
+                        row.get('prioridad', 'Media'),
+                        row.get('estado', 'Pending'),
+                        row.get('fecha', '')
+                    )
+                    self.reportes[rep.idReporte] = rep
+        except Exception as e:
+            print(f"Error al cargar reportes: {e}")
+
     # Guardado de datos
     def guardar_csv_nuevo(self):
         """Reescribe usuarios.csv con el estado actual en memoria."""
@@ -320,6 +343,28 @@ class SistemaGestionResidentes:
             return True
         except Exception as e:
             print(f"Error al sincronizar recibos: {e}")
+            return False
+
+    def guardar_reportes_csv(self):
+        try:
+            with open(self.archivo_reportes, mode='w', newline='', encoding='utf-8') as f:
+                campos = ['idReporte', 'usuario_id', 'titulo', 'tipo', 'descripcion', 'fecha', 'prioridad', 'estado']
+                writer = csv.DictWriter(f, fieldnames=campos)
+                writer.writeheader()
+                for r in self.reportes.values():
+                    writer.writerow({
+                        'idReporte': r.idReporte,
+                        'usuario_id': r.usuario_id,
+                        'titulo': r.titulo,
+                        'tipo': r.tipo,
+                        'descripcion': r.descripcion,
+                        'fecha': r.fecha,
+                        'prioridad': r.prioridad,
+                        'estado': r.estado
+                    })
+            return True
+        except Exception as e:
+            print(f"Error al sincronizar reportes: {e}")
             return False
 
     #Gestión de usuarios
@@ -447,6 +492,38 @@ class SistemaGestionResidentes:
         self.guardar_casas_csv()
         return c
 
+    # Gestión de reportes
+    def crear_reporte(self, usuario_id, titulo, tipo, descripcion, prioridad="Media"):
+        import re
+        # Extraer solo los números del ID (ej: #12A -> 12)
+        ids = []
+        for r in self.reportes.values():
+            match = re.search(r'(\d+)', r.idReporte)
+            if match:
+                ids.append(int(match.group(1)))
+        
+        numeric_id = max(ids, default=0) + 1
+        id_str = f"{numeric_id}A" # Genera 1A, 2A, etc.
+        
+        rep = Reporte(id_str, usuario_id, descripcion, titulo, tipo, prioridad, "Pending")
+        self.reportes[id_str] = rep
+        self.guardar_reportes_csv()
+        return rep
+
+    def editar_reporte_estado(self, idReporte, nuevo_estado):
+        if idReporte in self.reportes:
+            self.reportes[idReporte].estado = nuevo_estado
+            self.guardar_reportes_csv()
+            return True
+        return False
+
+    def eliminar_reporte(self, idReporte):
+        if idReporte in self.reportes:
+            del self.reportes[idReporte]
+            self.guardar_reportes_csv()
+            return True
+        return False
+
 class Casa:
     def __init__(self, idCasa, numero):
         self.idCasa     = idCasa
@@ -511,8 +588,12 @@ class Pago:
 
 
 class Reporte:
-    def __init__(self, idReporte, usuario, descripcion):
+    def __init__(self, idReporte, usuario_id, descripcion, titulo="", tipo="Mantenimiento", prioridad="Media", estado="Pending", fecha=None):
         self.idReporte  = idReporte
-        self.usuario    = usuario
+        self.usuario_id = usuario_id
+        self.titulo      = titulo if titulo else f"{tipo} #{idReporte}"
+        self.tipo        = tipo
         self.descripcion = descripcion
-        self.fecha      = datetime.now()
+        self.prioridad   = prioridad
+        self.estado      = estado
+        self.fecha       = fecha if fecha else datetime.now().strftime("%Y-%m-%d")

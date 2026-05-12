@@ -201,6 +201,8 @@ def abrir_panel_usuario(usuario_obj):
     def on_nav_click(opcion):
         if opcion == "Editar Perfil":
             editar_perfil(usuario_obj, ventana_panel)
+        elif opcion == "Reportes":
+            abrir_reportes(usuario_obj)
 
     botones_nav = [
         ("👤 Editar Perfil", "Editar Perfil"),
@@ -737,159 +739,307 @@ def abrir_generar_recibo(admin_obj):
         sistema_back.generar_recibo(usuario_id=res_id, periodo=ent_periodo.get(), total=total)
         mostrar_exito()
         ventana_recibo.destroy()
-
     ctk.CTkButton(content_frame, text="Vista Previa", fg_color="#196D39", font=("Arial", 14, "bold"), command=mostrar_vista_previa).pack(fill="x", pady=5)
     ctk.CTkButton(content_frame, text="Guardar", fg_color="#196D39", font=("Arial", 14, "bold"), command=guardar).pack(fill="x", pady=5)
     ctk.CTkButton(content_frame, text="Imprimir", fg_color="#196D39", font=("Arial", 14, "bold"), command=imprimir).pack(side="right", pady=10, padx=20)
 
-# REPORTES
 
+# ==========================
+# VENTANA REPORTES
+# ==========================
 def abrir_reportes(admin_obj):
 
     ventana_reportes = ctk.CTkToplevel()
-    ventana_reportes.title("Reportes del Sistema")
-    ventana_reportes.geometry("900x600")
+    ventana_reportes.title("Gestión de Reportes y Estadísticas")
+    ventana_reportes.geometry("1200x600")
     ventana_reportes.configure(fg_color=Color_fondo)
 
-    ctk.CTkLabel(
-        ventana_reportes,
-        text="Reportes Generales",
-        font=("Arial", 28, "bold"),
-        text_color=Color_texto_oscuro
-    ).pack(pady=20)
+    #Configuración 
+    ventana_reportes.grid_columnconfigure(0, weight=4)
+    ventana_reportes.grid_columnconfigure(1, weight=1)
+    ventana_reportes.grid_rowconfigure(3, weight=1)
 
-    frame = ctk.CTkFrame(
-        ventana_reportes,
-        fg_color="white",
-        corner_radius=15
-    )
+    font_titulo = ("Arial", 26, "bold")
+    font_subtitulo = ("Arial", 13)
+    font_card_title = ("Arial", 11, "bold")
+    font_card_value = ("Arial", 20, "bold")
+    font_card_sub = ("Arial", 10)
+    font_header = ("Arial", 12, "bold")
 
-    frame.pack(fill="both", expand=True, padx=20, pady=20)
+    header_container = ctk.CTkFrame(ventana_reportes, fg_color="transparent")
+    header_container.grid(row=0, column=0, columnspan=2, sticky="ew", padx=25, pady=(12, 5))
 
-    total_usuarios = len([
-        u for u in sistema_back.usuarios.values()
-        if u.tipoUsuario != "admin"
-    ])
+    header_container.grid_columnconfigure(0, weight=1)
+    header_container.grid_columnconfigure(1, weight=1)
+    header_container.grid_columnconfigure(2, weight=1)
 
-    total_servicios = len(sistema_back.servicios)
-
-    total_consumos = len(sistema_back.consumos)
-
-    pendientes = len([
-        c for c in sistema_back.consumos.values()
-        if c.estado == "pendiente"
-    ])
-
-    pagados = len([
-        c for c in sistema_back.consumos.values()
-        if c.estado == "pagado"
-    ])
-
-    total_dinero = sum(
-        c.total(sistema_back)
-        for c in sistema_back.consumos.values()
-    )
-
-    # TARJETAS
-    tarjetas = ctk.CTkFrame(frame, fg_color="transparent")
-    tarjetas.pack(fill="x", pady=20)
-
-    datos = [
-        ("Residentes", total_usuarios),
-        ("Servicios", total_servicios),
-        ("Consumos", total_consumos),
-        ("Pendientes", pendientes),
-        ("Pagados", pagados),
-        ("Total", f"${total_dinero:.2f}")
-    ]
-
-    for texto, valor in datos:
-
-        card = ctk.CTkFrame(
-            tarjetas,
-            width=140,
-            height=100,
-            fg_color="#DFF5DD",
-            corner_radius=15
-        )
-
-        card.pack(side="left", padx=10, pady=10)
-        card.pack_propagate(False)
-
-        ctk.CTkLabel(
-            card,
-            text=str(valor),
-            font=("Arial", 24, "bold"),
-            text_color=Color_boton_oscuro
-        ).pack(pady=(20, 5))
-
-        ctk.CTkLabel(
-            card,
-            text=texto,
-            font=("Arial", 13)
-        ).pack()
-
-    # MOVIMIENTOS
-    ctk.CTkLabel(
-        frame,
-        text="Últimos Movimientos",
-        font=("Arial", 18, "bold"),
-        text_color=Color_texto_oscuro
-    ).pack(anchor="w", padx=20, pady=(20, 10))
-
-    tabla_frame = ctk.CTkScrollableFrame(
-        frame,
-        fg_color="#F5F5F5",
-        height=300
-    )
-
-    tabla_frame.pack(fill="both", expand=True, padx=20, pady=10)
-
-    movimientos = list(sistema_back.consumos.values())
-
-    if not movimientos:
-
-        ctk.CTkLabel(
-            tabla_frame,
-            text="No hay movimientos registrados.",
-            font=("Arial", 14),
-            text_color="gray"
-        ).pack(pady=20)
-
-    else:
-
-        for c in reversed(movimientos[-20:]):
-
-            usuario = sistema_back.usuarios.get(c.usuario_id)
-            servicio = sistema_back.servicios.get(c.servicio_id)
-
-            nombre_usuario = usuario.Username if usuario else "Desconocido"
-            nombre_servicio = servicio.nombre if servicio else "Servicio"
-
-            estado = "✅ Pagado" if c.estado == "pagado" else "⏳ Pendiente"
-
-            texto = (
-                f"{nombre_usuario} | "
-                f"{nombre_servicio} | "
-                f"${c.total(sistema_back):.2f} | "
-                f"{estado}"
-            )
-
-            ctk.CTkLabel(
-                tabla_frame,
-                text=texto,
-                font=("Consolas", 13),
-                anchor="w"
-            ).pack(fill="x", padx=10, pady=5)
-
-    ctk.CTkButton(
-        ventana_reportes,
-        text="Cerrar",
+    # BOTÓN VOLVER
+    btn_volver = ctk.CTkButton(header_container,
+        text="← Volver",
         fg_color="#8B0000",
         hover_color="#5E0000",
+        width=110,
+        height=38,
+        corner_radius=10,
+        font=("Arial", 12, "bold"),
         command=ventana_reportes.destroy
-    ).pack(pady=10)
-    
+    )
+
+    btn_volver.grid(row=0, column=2, sticky="e")
+
+    # CONTENIDO CENTRADO
+    title_frame = ctk.CTkFrame(header_container, fg_color="transparent")
+    title_frame.grid(row=0, column=1)
+
+    ctk.CTkLabel(title_frame, text="Gestión de Reportes y Estadísticas", font=font_titulo, text_color="#1B4332").pack()
+
+    deco_frame = ctk.CTkFrame(title_frame, fg_color="transparent")
+    deco_frame.pack(pady=(2, 0))
+
+    ctk.CTkLabel(deco_frame, text="Resumen general del sistema", font=font_subtitulo, text_color="#666666").pack(side="left")
+
+    stats_frame = ctk.CTkFrame(ventana_reportes, fg_color="transparent")
+    stats_frame.grid(row=1, column=0, columnspan=2, sticky="ew", padx=20, pady=(5, 10))
+
+    for i in range(5):
+        stats_frame.grid_columnconfigure(i, weight=1)
+
+    def crear_card(parent, col, icon, title, value, subtext, color_bg, icon_color):
+
+        card = ctk.CTkFrame(parent, fg_color="white", corner_radius=18, border_width=1, border_color="#DDE5DD", height=115)
+        card.grid(row=0, column=col, padx=6, sticky="nsew")
+        card.grid_propagate(False)
+
+        icon_circle = ctk.CTkFrame(card, width=48, height=48, corner_radius=24, fg_color=color_bg)
+        icon_circle.pack(pady=(10, 5))
+        icon_circle.pack_propagate(False)
+
+        ctk.CTkLabel(icon_circle, text=icon, font=("Arial", 20), text_color=icon_color).pack(expand=True)
+        ctk.CTkLabel(card, text=title, font=font_card_title, text_color=icon_color).pack()
+        ctk.CTkLabel(card, text=str(value), font=font_card_value, text_color=icon_color).pack()
+        ctk.CTkLabel(card, text=subtext, font=font_card_sub, text_color="#777777").pack(pady=(2, 0))
+
+    def refrescar_stats():
+
+        total_u = len([
+            u for u in sistema_back.usuarios.values()
+            if u.tipoUsuario != "admin"
+        ])
+
+        total_s = len(sistema_back.servicios)
+
+        total_c = len(sistema_back.consumos)
+
+        total_m = sum(
+            c.total(sistema_back)
+            for c in sistema_back.consumos.values()
+        )
+
+        total_p = len([
+            r for r in sistema_back.reportes.values()
+            if r.estado == "Pending"
+        ])
+
+        for w in stats_frame.winfo_children():
+            w.destroy()
+
+        crear_card(stats_frame, 0, "👥", "Residentes", total_u, "Usuarios registrados", "#E3F2FD", "#1976D2")
+        crear_card(stats_frame, 1, "🛠", "Servicios", total_s, "Servicios activos", "#E8F5E9", "#388E3C")
+        crear_card(stats_frame, 2, "📈", "Movimientos", total_c, "Total movimientos", "#FFF3E0", "#F57C00")
+        crear_card(stats_frame, 3, "💰", "Recaudación",  f"${total_m:,.0f}", "Ingresos", "#F3E5F5", "#7B1FA2")
+        crear_card(stats_frame, 4, "⚠️", "Pendientes",  total_p, "Reportes", "#FFEBEE", "#D32F2F")
+
+    refrescar_stats()
+
+    # PANEL IZQUIERDO
+    left_container = ctk.CTkFrame(ventana_reportes, fg_color="white", corner_radius=20, border_width=1, border_color="#DDE5DD")
+    left_container.grid(row=3, column=0, sticky="nsew", padx=(20, 10), pady=(0, 20))
+
+    # HEADER TABLA
+    list_header = ctk.CTkFrame( left_container, fg_color="transparent")
+    list_header.pack(fill="x", padx=18, pady=(15, 10))
+
+    ctk.CTkLabel(list_header, text="📋 Lista de Reportes", font=("Arial", 18, "bold"), text_color="#1B4332").pack(side="left")
+
+    ent_buscar = ctk.CTkEntry( list_header, placeholder_text="🔍 Filtrar por Fecha", width=250, height=36, corner_radius=10, border_color="#DADADA", fg_color="#FAFAFA")
+    ent_buscar.pack(side="right")
+
+    table_header = ctk.CTkFrame(left_container, fg_color="#0D7A32", height=42, corner_radius=10)
+    table_header.pack(fill="x", padx=14)
+    table_header.grid_columnconfigure((0, 1, 2, 3), weight=1)
+
+    headers = [
+        "Tipo / Título",
+        "Fecha",
+        "Prioridad",
+        "Estado"
+    ]
+
+    for i, h in enumerate(headers):
+        ctk.CTkLabel(table_header, text=h, font=font_header, text_color="white").grid(row=0, column=i, padx=10, pady=10, sticky="w")
+
+    # TABLA
+    scroll_reps = ctk.CTkScrollableFrame(left_container, fg_color="transparent")
+    scroll_reps.pack(fill="both", expand=True,padx=8, pady=8)
+
+    pagination_frame = ctk.CTkFrame(left_container, fg_color="transparent")
+    pagination_frame.pack(fill="x", padx=18, pady=(0, 10))
+
+    lbl_counts = ctk.CTkLabel(pagination_frame, text="Mostrando 0 reportes", font=("Arial", 10), text_color="#666666")
+    lbl_counts.pack(side="left")
+
+    ctk.CTkLabel(pagination_frame,text="Página 1 de 1", font=("Arial", 10), text_color="#666666").pack(side="right")
+
+    # PANEL DERECHO
+    right_container = ctk.CTkFrame( ventana_reportes, fg_color="white", corner_radius=20, border_width=1, border_color="#DDE5DD")
+    right_container.grid(row=3, column=1, sticky="nsew",  padx=(10, 20), pady=(0, 20))
+
+    ctk.CTkLabel(right_container, text="ℹ️ Información", font=("Arial", 18, "bold"), text_color="#1B4332").pack(pady=(18, 12))
+
+    details_card = ctk.CTkFrame(right_container, fg_color="#F7FBF7", corner_radius=15, border_width=1, border_color="#E5E5E5", height=170)
+    details_card.pack(fill="x",padx=15)
+    details_card.pack_propagate(False)
+
+    lbl_detail_icon = ctk.CTkLabel(details_card, text="📄", font=("Arial", 35), text_color="#B8C5B8")
+    lbl_detail_icon.pack(pady=(20, 5))
+
+    lbl_detail_txt = ctk.CTkLabel(details_card, text="Seleccione un reporte", font=("Arial", 11), text_color="#777777",justify="center")
+    lbl_detail_txt.pack()
+
+    # BOTONES
+    actions_frame = ctk.CTkFrame(right_container, fg_color="transparent")
+    actions_frame.pack(fill="x", padx=15, pady=15)
+
+    def crear_boton(texto, color):
+
+        btn = ctk.CTkButton(actions_frame, text=texto, fg_color=color, height=40, corner_radius=10, font=("Arial", 12, "bold"))
+        btn.pack(fill="x", pady=5)
+
+        return btn
+
+    btn_edit_st = crear_boton("📝 Editar estado", "#0E7A32")
+    btn_assign = crear_boton("👤 Asignar responsable", "#173B73")
+    btn_export = crear_boton("📥 Exportar reporte", "#007C89")
+    btn_delete = crear_boton("🗑️ Eliminar reporte", "#B30000")
+
+    # lógica de selección y acciones sobre reportes
+    rep_sel = [None]
+    fila_sel = [None]
+
+    def seleccionar(rep, fila):
+        rep_sel[0] = rep
+
+        if fila_sel[0]:
+            try:
+                fila_sel[0].configure(fg_color="transparent")
+            except:
+                pass
+
+        fila_sel[0] = fila
+
+        fila.configure(fg_color="#EEF8EF")
+
+        lbl_detail_txt.configure(
+            text=f"ID: #{rep.idReporte}\n\n"
+                 f"Usuario: {rep.usuario_id}\n"
+                 f"Fecha: {rep.fecha}\n"
+                 f"Estado: {rep.estado}\n\n"
+                 f"{rep.descripcion}",
+            text_color="#333333"
+        )
+
+    def cargar_tabla_reps(*args):
+        for w in scroll_reps.winfo_children():
+            w.destroy()
+        filtro = ent_buscar.get().lower()
+
+        icons_map = {
+            "Mantenimiento": "🔧",
+            "Limpieza": "🧹",
+            "Seguridad": "🛡️",
+            "Entrega de Paquete": "📦",
+            "Reserva de Área Común": "🗓️"
+        }
+
+        mostrados = 0
+        for r in sistema_back.reportes.values():
+            if filtro and filtro not in r.fecha:
+                continue
+            mostrados += 1
+
+            fila = ctk.CTkFrame(scroll_reps, fg_color="transparent", corner_radius=8, height=45)
+            fila.pack(fill="x", padx=3, pady=2)
+            fila.grid_columnconfigure((0,1,2,3), weight=1)
+
+            ic = icons_map.get(r.tipo, "📝")
+
+            lbl1 = ctk.CTkLabel(fila, text=f"{ic}  {r.titulo}", font=("Arial", 11), anchor="w")
+            lbl1.grid(row=0, column=0, padx=10, sticky="w")
+
+            lbl2 = ctk.CTkLabel(fila, text=r.fecha, font=("Arial", 11))
+            lbl2.grid(row=0, column=1)
+
+            lbl3 = ctk.CTkLabel(fila, text=f"🚩 {r.prioridad}", font=("Arial", 10, "bold"), text_color="#B8860B")
+            lbl3.grid(row=0, column=2)
+
+            estado_color = {
+                "Pending": "#D32F2F",
+                "In Progress": "#F57C00",
+                "Closed": "#2E7D32"
+            }.get(r.estado, "gray")
+
+            estado_frame = ctk.CTkFrame(fila, fg_color="#FFF5F5", corner_radius=15, border_width=1, border_color="#E5E5E5", width=95, height=26)
+
+            estado_frame.grid(row=0, column=3)
+            estado_frame.pack_propagate(False)
+
+            ctk.CTkLabel(estado_frame, text=f"● {r.estado}", text_color=estado_color, font=("Arial", 9, "bold")).pack(expand=True)
+
+            widgets = [
+                fila, lbl1, lbl2, lbl3, estado_frame
+            ]
+
+            for w in widgets:
+                w.bind(
+                    "<Button-1>",
+                    lambda e, rep=r, f=fila:
+                    seleccionar(rep, f)
+                )
+
+        lbl_counts.configure(
+            text=f"Mostrando {mostrados} reportes"
+        )
+
+    def editar_st():
+        if not rep_sel[0]:
+            return
+        r = rep_sel[0]
+        sts = ["Pending", "In Progress", "Closed"]
+        nxt = sts[(sts.index(r.estado) + 1) % 3]
+        if sistema_back.editar_reporte_estado(r.idReporte, nxt):
+            cargar_tabla_reps()
+            refrescar_stats()
+
+    def eliminar_rep_ui():
+        if not rep_sel[0]:
+            return
+        if messagebox.askyesno(
+            "Confirmar",
+            f"¿Eliminar reporte {rep_sel[0].idReporte}?"
+        ):
+            sistema_back.eliminar_reporte(rep_sel[0].idReporte)
+            rep_sel[0] = None
+            cargar_tabla_reps()
+            refrescar_stats()
+            lbl_detail_txt.configure(
+                text="Seleccione un reporte"
+            )
+
+    btn_edit_st.configure(command=editar_st)
+    btn_delete.configure(command=eliminar_rep_ui)
+    ent_buscar.bind("<KeyRelease>", cargar_tabla_reps)
+
+    cargar_tabla_reps()
 
 ##==========================
 # Panel de Administrador
