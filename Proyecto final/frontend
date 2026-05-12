@@ -742,6 +742,155 @@ def abrir_generar_recibo(admin_obj):
     ctk.CTkButton(content_frame, text="Guardar", fg_color="#196D39", font=("Arial", 14, "bold"), command=guardar).pack(fill="x", pady=5)
     ctk.CTkButton(content_frame, text="Imprimir", fg_color="#196D39", font=("Arial", 14, "bold"), command=imprimir).pack(side="right", pady=10, padx=20)
 
+# REPORTES
+
+def abrir_reportes(admin_obj):
+
+    ventana_reportes = ctk.CTkToplevel()
+    ventana_reportes.title("Reportes del Sistema")
+    ventana_reportes.geometry("900x600")
+    ventana_reportes.configure(fg_color=Color_fondo)
+
+    ctk.CTkLabel(
+        ventana_reportes,
+        text="Reportes Generales",
+        font=("Arial", 28, "bold"),
+        text_color=Color_texto_oscuro
+    ).pack(pady=20)
+
+    frame = ctk.CTkFrame(
+        ventana_reportes,
+        fg_color="white",
+        corner_radius=15
+    )
+
+    frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+    total_usuarios = len([
+        u for u in sistema_back.usuarios.values()
+        if u.tipoUsuario != "admin"
+    ])
+
+    total_servicios = len(sistema_back.servicios)
+
+    total_consumos = len(sistema_back.consumos)
+
+    pendientes = len([
+        c for c in sistema_back.consumos.values()
+        if c.estado == "pendiente"
+    ])
+
+    pagados = len([
+        c for c in sistema_back.consumos.values()
+        if c.estado == "pagado"
+    ])
+
+    total_dinero = sum(
+        c.total(sistema_back)
+        for c in sistema_back.consumos.values()
+    )
+
+    # TARJETAS
+    tarjetas = ctk.CTkFrame(frame, fg_color="transparent")
+    tarjetas.pack(fill="x", pady=20)
+
+    datos = [
+        ("Residentes", total_usuarios),
+        ("Servicios", total_servicios),
+        ("Consumos", total_consumos),
+        ("Pendientes", pendientes),
+        ("Pagados", pagados),
+        ("Total", f"${total_dinero:.2f}")
+    ]
+
+    for texto, valor in datos:
+
+        card = ctk.CTkFrame(
+            tarjetas,
+            width=140,
+            height=100,
+            fg_color="#DFF5DD",
+            corner_radius=15
+        )
+
+        card.pack(side="left", padx=10, pady=10)
+        card.pack_propagate(False)
+
+        ctk.CTkLabel(
+            card,
+            text=str(valor),
+            font=("Arial", 24, "bold"),
+            text_color=Color_boton_oscuro
+        ).pack(pady=(20, 5))
+
+        ctk.CTkLabel(
+            card,
+            text=texto,
+            font=("Arial", 13)
+        ).pack()
+
+    # MOVIMIENTOS
+    ctk.CTkLabel(
+        frame,
+        text="Últimos Movimientos",
+        font=("Arial", 18, "bold"),
+        text_color=Color_texto_oscuro
+    ).pack(anchor="w", padx=20, pady=(20, 10))
+
+    tabla_frame = ctk.CTkScrollableFrame(
+        frame,
+        fg_color="#F5F5F5",
+        height=300
+    )
+
+    tabla_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+    movimientos = list(sistema_back.consumos.values())
+
+    if not movimientos:
+
+        ctk.CTkLabel(
+            tabla_frame,
+            text="No hay movimientos registrados.",
+            font=("Arial", 14),
+            text_color="gray"
+        ).pack(pady=20)
+
+    else:
+
+        for c in reversed(movimientos[-20:]):
+
+            usuario = sistema_back.usuarios.get(c.usuario_id)
+            servicio = sistema_back.servicios.get(c.servicio_id)
+
+            nombre_usuario = usuario.Username if usuario else "Desconocido"
+            nombre_servicio = servicio.nombre if servicio else "Servicio"
+
+            estado = "✅ Pagado" if c.estado == "pagado" else "⏳ Pendiente"
+
+            texto = (
+                f"{nombre_usuario} | "
+                f"{nombre_servicio} | "
+                f"${c.total(sistema_back):.2f} | "
+                f"{estado}"
+            )
+
+            ctk.CTkLabel(
+                tabla_frame,
+                text=texto,
+                font=("Consolas", 13),
+                anchor="w"
+            ).pack(fill="x", padx=10, pady=5)
+
+    ctk.CTkButton(
+        ventana_reportes,
+        text="Cerrar",
+        fg_color="#8B0000",
+        hover_color="#5E0000",
+        command=ventana_reportes.destroy
+    ).pack(pady=10)
+    
+
 ##==========================
 # Panel de Administrador
 #===========================
@@ -828,7 +977,8 @@ def abrir_panel_admin(usuario_obj):
                   command=lambda: abrir_registro_consumo(usuario_obj)).pack(fill="x", pady=15)
 
     ctk.CTkButton(frame_der, text="📊 Ver Reportes", fg_color=Color_boton_oscuro,
-                  corner_radius=12, font=("Arial", 15, "bold"), height=55).pack(fill="x", pady=15)
+                  corner_radius=12, font=("Arial", 15, "bold"), height=55, command=lambda: abrir_reportes(usuario_obj)
+                  ).pack(fill="x", pady=15)
 
     ctk.CTkButton(frame_der, text="💰 Generar Recibo de Pago", height=55,
                   fg_color=Color_boton_oscuro, corner_radius=12, font=("Arial", 15, "bold"),
