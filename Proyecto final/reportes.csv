@@ -1,6 +1,6 @@
 idReporte,usuario_id,titulo,tipo,descripcion,fecha,prioridad,estado
-12A,101,Reporte de Mantenimiento #12A,Mantenimiento,Se requiere reparación de tubería en el sótano.,2024-05-15,Alto,Pending
-12B,102,Solicitud de Limpieza #12A,Limpieza,Limpieza profunda del salón de eventos.,2024-05-16,Alto,Pending
-12C,103,Problema de Seguridad #12A,Seguridad,Cámara de seguridad del pasillo B no funciona.,2024-05-17,Alto,Pending
-12D,104,Entrega de Paquete #12C,Entrega de Paquete,Paquete frágil recibido en recepción.,2024-05-18,Alto,Pending
-16B,105,Reserva de Área Común #16B,Reserva de Área Común,Reserva confirmada para parrillada.,2024-05-15,Alto,Pending
+12A,101,Reporte de Mantenimiento #12A,Mantenimiento,Se requiere reparación de tubería en el sótano.,2024-05-15,Alto,Pendiente
+12B,102,Solicitud de Limpieza #12A,Limpieza,Limpieza profunda del salón de eventos.,2024-05-16,Alto,Pendiente
+12C,103,Problema de Seguridad #12A,Seguridad,Cámara de seguridad del pasillo B no funciona.,2024-05-17,Alto,Pendiente
+12D,104,Entrega de Paquete #12C,Entrega de Paquete,Paquete frágil recibido en recepción.,2024-05-18,Alto,Pendiente
+16B,105,Reserva de Área Común #16B,Reserva de Área Común,Reserva confirmada para parrillada.,2024-05-15,Alto,Pendiente

@@ -505,7 +505,7 @@ class SistemaGestionResidentes:
         numeric_id = max(ids, default=0) + 1
         id_str = f"{numeric_id}A" # Genera 1A, 2A, etc.
         
-        rep = Reporte(id_str, usuario_id, descripcion, titulo, tipo, prioridad, "Pending")
+        rep = Reporte(id_str, usuario_id, descripcion, titulo, tipo, prioridad, "Pendiente")
         self.reportes[id_str] = rep
         self.guardar_reportes_csv()
         return rep
@@ -588,7 +588,7 @@ class Pago:
 
 
 class Reporte:
-    def __init__(self, idReporte, usuario_id, descripcion, titulo="", tipo="Mantenimiento", prioridad="Media", estado="Pending", fecha=None):
+    def __init__(self, idReporte, usuario_id, descripcion, titulo="", tipo="Mantenimiento", prioridad="Media", estado="Pendiente", fecha=None):
         self.idReporte  = idReporte
         self.usuario_id = usuario_id
         self.titulo      = titulo if titulo else f"{tipo} #{idReporte}"
