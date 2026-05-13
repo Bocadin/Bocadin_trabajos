@@ -2,7 +2,6 @@ import csv
 import os
 from datetime import datetime
 
-
 class Usuario:
     def __init__(self, idUsuario, Username, contraseña, correo, tipoUsuario,
                  nombre_completo="", direccion="", telefono="",
@@ -55,16 +54,8 @@ class Residente(Usuario):
     def consultar_consumos(self, lista_consumos):
         return [c for c in lista_consumos if c.usuario_id == self.idUsuario]
 
-    # Alias para compatibilidad con el diagrama UML (consultarConsumo)
-    def consultarConsumo(self, lista_consumos):
-        return self.consultar_consumos(lista_consumos)
-
     def ver_recibos(self):
         return self.recibos
-
-    # Alias para compatibilidad con el diagrama UML (verRecibos)
-    def verRecibos(self):
-        return self.ver_recibos()
 
     def reportar_falla(self, idReporte, descripcion):
         return Reporte(idReporte, self.idUsuario, descripcion)
@@ -95,9 +86,9 @@ class Residente(Usuario):
 
 
 class Administrador(Usuario):
-    def __init__(self, idUsuario, nombre, contraseña, correo, foto_perfil=None):
+    def __init__(self, idUsuario, Username, contraseña, correo, foto_perfil=None):
         super().__init__(
-            idUsuario, nombre, contraseña, correo, "admin",
+            idUsuario, Username, contraseña, correo, "admin",
             "Administrador", "Oficina Central", "0000000000",
             "activo", foto_perfil or os.path.join(os.path.dirname(os.path.abspath(__file__)), "admin_icon.png")
         )
@@ -113,48 +104,6 @@ class Administrador(Usuario):
             sistema.guardar_csv_nuevo()
             return True
         return False
-
-    def registrarUsuario(self, sistema, Username, contraseña, correo, tipoResidente="residente"):
-        #Registra un nuevo usuario directamente como activo (desde el admin).
-        return sistema.registroforAdmin(Username, contraseña, correo, tipoResidente)
-
-    def gestionarUsuarios(self, sistema):
-        #Retorna la lista completa de usuarios del sistema.
-        return list(sistema.usuarios.values())
-
-    def registrarConsumo(self, sistema, cantidad, usuario_id, servicio_id, fecha=None):
-        #Registra un consumo para un usuario específico.
-        return sistema.registrar_consumo(cantidad, usuario_id, servicio_id, fecha)
-
-    def generarRecibos(self, sistema, usuario_id, periodo=None):
-        consumos_pendientes = [
-            c for c in sistema.consumos.values()
-            if c.usuario_id == usuario_id and c.estado == "pendiente"
-        ]
-        if not consumos_pendientes:
-            return None
-
-        total = sum(c.total(sistema) for c in consumos_pendientes)
-        periodo_str = periodo or datetime.now().strftime("%Y-%m")
-        recibo = sistema.generar_recibo(usuario_id, periodo_str, total)
-
-        # Vincular consumos al recibo y marcarlos como facturados
-        for c in consumos_pendientes:
-            recibo.agregar_consumo(c)
-
-        sistema.guardar_recibos_csv()
-        return recibo
-
-    def verReportes(self, sistema, estado=None):
-        # Retorna todos los reportes. Si se especifica estado, filtra por él.
-        # Ejemplo de estados: 'Pendiente', 'En Proceso', 'Resuelto'
-        if estado:
-            return [r for r in sistema.reportes.values() if r.estado == estado]
-        return list(sistema.reportes.values())
-
-    def gestionarServicios(self, sistema):
-        #Retorna la lista de servicios registrados en el sistema.
-        return list(sistema.servicios.values())
 
 
 class SistemaGestionResidentes:
@@ -212,7 +161,7 @@ class SistemaGestionResidentes:
             # Instanciar como Administrador para que tenga todos sus métodos
             u = Administrador(
                 idUsuario  = kwargs["idUsuario"],
-                nombre     = kwargs["Username"],
+                Username   = kwargs["Username"],
                 contraseña = kwargs["contraseña"],
                 correo     = kwargs["correo"],
                 foto_perfil= kwargs.get("foto_perfil"),
@@ -431,10 +380,10 @@ class SistemaGestionResidentes:
             return False
 
     #Gestión de usuarios
-    def registroforAdmin(self, NameUser, contraseña, correonew, tipoResidente="residente"):
+    def registroforAdmin(self, Username, contraseña, correo, tipoResidente="residente"):
         # Verificar duplicado de username
         for u in self.usuarios.values():
-            if u.Username == NameUser and u.correo == correonew:
+            if u.Username == Username and u.correo == correo:
                 return "error_duplicado"
 
         ids = [int(u.idUsuario) for u in self.usuarios.values() if str(u.idUsuario).isdigit()]
@@ -443,9 +392,9 @@ class SistemaGestionResidentes:
         nuevo_usuario = Residente(
             tipoResidente  = tipoResidente,
             idUsuario      = nuevo_id,
-            Username       = NameUser,
+            Username       = Username,
             contraseña     = contraseña,
-            correo         = correonew,
+            correo         = correo,
             nombre_completo= "",
             direccion      = "",
             telefono       = "",
@@ -456,9 +405,9 @@ class SistemaGestionResidentes:
         return "exito" if self.guardar_csv_nuevo() else "error_guardado"
 
     #Modificar datos
-    def actualizarContraseña(self, nombre_username, nueva_contraseña):
+    def actualizarContraseña(self, Username, nueva_contraseña):
         for u in self.usuarios.values():
-            if u.Username == nombre_username:
+            if u.Username == Username:
                 u.contraseña = nueva_contraseña
                 return self.guardar_csv_nuevo()
         return False
