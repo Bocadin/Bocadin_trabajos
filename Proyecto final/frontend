@@ -8,6 +8,7 @@ import shutil
 from tkinter import filedialog
 from backend import *
 
+
 sistema_back = SistemaGestionResidentes()
 
 #==========================
@@ -1038,7 +1039,7 @@ def abrir_reportes(admin_obj):
 
     cargar_tabla_reps()
 
-##==========================
+##========================== 
 # Panel de Administrador
 #===========================
 
@@ -1230,6 +1231,48 @@ def abrir_login_usuario():
                   hover=False, command=abrir_olvido_pass).pack()
     ctk.CTkButton(main_frame, text="Volver",
                   command=lambda: [ventana_login.destroy(), ventana_menu.deiconify()]).pack(pady=10)
+
+# ===========================
+# Login de Administrador
+# ===========================
+
+def abrir_login_admin():
+    # Ventana de login que conecta con el backend
+    ventana_menu.withdraw()
+
+    ventana_login_admin = ctk.CTkToplevel(ventana_principal)
+    ventana_login_admin.title("Inicio de Sesión")
+    ventana_login_admin.geometry("400x450")
+    ventana_login_admin.configure(fg_color=Color_fondo)
+    ventana_login_admin.attributes("-topmost", True)
+
+    main_frame = ctk.CTkFrame( ventana_login_admin, fg_color="#BCDFC2", corner_radius=20, border_width=0)
+    main_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER, relwidth=0.8, relheight=0.8)
+
+    ctk.CTkLabel(main_frame, text="🔑 Ingreso Administrador", font=("Arial", 24, "bold"), text_color="#162440").pack(pady=20)
+
+    ent_user = ctk.CTkEntry(main_frame, placeholder_text="Nombre de Usuario", width=250, height=35, border_width=2, corner_radius=10)
+    ent_user.pack(pady=10)
+
+    ent_pass = ctk.CTkEntry(main_frame, placeholder_text="Contraseña", show="*", width=250, height=35, border_width=2, corner_radius=10)
+    ent_pass.pack(pady=10)
+
+    def intentar_login():
+        u = ent_user.get()
+        p = ent_pass.get()
+
+        usuario = sistema_back.autenticar(u, p)
+
+        # Solo permitir administradores
+        if usuario and usuario.tipoUsuario == "admin":
+            ventana_login_admin.destroy()
+            abrir_panel_admin(usuario)
+
+        else:
+            mostrar_error("Credenciales de administrador incorrectas")
+
+    ctk.CTkButton(main_frame, text="Entrar", fg_color=Color_boton_oscuro, command=intentar_login).pack(pady=15)
+    ctk.CTkButton(main_frame, text="Volver", command=lambda: [ ventana_login_admin.destroy(), ventana_menu.deiconify()]).pack(pady=10)
 
 # ===========================
 # Gestión de Residentes (solo admin)
@@ -1628,7 +1671,7 @@ btn_usuario.pack(pady=10)
 btn_admin = ctk.CTkButton(frame_botones, text="Administrador", fg_color=Color_boton_oscuro,
                           width=320, height=45, corner_radius=32,
                           font=("Arial", 14, "bold"), image=icono_admin,
-                          command=abrir_login_usuario)
+                          command=abrir_login_admin)
 btn_admin.pack(pady=10)
 
 btn_registro = ctk.CTkButton(frame_botones, text="Registro", fg_color=Color_boton_oscuro,

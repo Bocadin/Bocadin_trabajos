@@ -68,12 +68,16 @@ def crear_base_csv():
         "periodo"
     ])
 
-    # Reportes
+    # Reportes — encabezados alineados con guardar_reportes_csv() del backend
     crear_archivo("reportes.csv", [
         "idReporte",
         "usuario_id",
+        "titulo",
+        "tipo",
         "descripcion",
-        "fecha"
+        "fecha",
+        "prioridad",
+        "estado"
     ])
 
 
