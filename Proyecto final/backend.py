@@ -181,7 +181,7 @@ class SistemaGestionResidentes:
         if not os.path.exists(self.archivo_usuarios):
             return
         try:
-            with open(self.archivo_usuarios, mode='r', newline='', encoding='utf-8') as f:
+            with open(self.archivo_usuarios, mode='r', newline='', encoding='utf-8-sig') as f:
                 for row in csv.DictReader(f):
                     u = self._instanciar_usuario(row)
                     self.usuarios[u.idUsuario] = u
@@ -201,7 +201,7 @@ class SistemaGestionResidentes:
         if not os.path.exists(self.archivo_servicios):
             return
         try:
-            with open(self.archivo_servicios, mode='r', newline='', encoding='utf-8') as f:
+            with open(self.archivo_servicios, mode='r', newline='', encoding='utf-8-sig') as f:
                 for row in csv.DictReader(f):
                     s = Servicio(row['idServicio'], row['nombre'],
                                  row['tipo'], float(row['tarifa']))
@@ -213,7 +213,7 @@ class SistemaGestionResidentes:
         if not os.path.exists(self.archivo_consumos):
             return
         try:
-            with open(self.archivo_consumos, mode='r', newline='', encoding='utf-8') as f:
+            with open(self.archivo_consumos, mode='r', newline='', encoding='utf-8-sig') as f:
                 for row in csv.DictReader(f):
                     # Compatibilidad con CSVs viejos que usaban 'casa_id'
                     u_id = row.get('usuario_id', row.get('casa_id', ''))
@@ -228,7 +228,7 @@ class SistemaGestionResidentes:
         if not os.path.exists(self.archivo_casas):
             return
         try:
-            with open(self.archivo_casas, mode='r', newline='', encoding='utf-8') as f:
+            with open(self.archivo_casas, mode='r', newline='', encoding='utf-8-sig') as f:
                 for row in csv.DictReader(f):
                     c = Casa(row['idCasa'], row['numero'])
                     c.propietario = row.get('propietario_id', '')
@@ -241,9 +241,12 @@ class SistemaGestionResidentes:
         if not os.path.exists(self.archivo_recibos):
             return
         try:
-            with open(self.archivo_recibos, mode='r', newline='', encoding='utf-8') as f:
+            with open(self.archivo_recibos, mode='r', newline='', encoding='utf-8-sig') as f:
                 for row in csv.DictReader(f):
-                    r = Recibo(row['idRecibo'], row['usuario_id'])
+                    u_id = row['usuario_id']
+                    # Intentar vincular con el objeto usuario real
+                    user_obj = self.usuarios.get(u_id, u_id) 
+                    r = Recibo(row['idRecibo'], user_obj)
                     r.total_pagar = float(row.get('total', 0))
                     r.estado      = row.get('estado', 'pendiente')
                     r.periodo     = row.get('periodo', '')
@@ -255,7 +258,7 @@ class SistemaGestionResidentes:
         if not os.path.exists(self.archivo_reportes):
             return
         try:
-            with open(self.archivo_reportes, mode='r', newline='', encoding='utf-8') as f:
+            with open(self.archivo_reportes, mode='r', newline='', encoding='utf-8-sig') as f:
                 for row in csv.DictReader(f):
                     rep = Reporte(
                         row['idReporte'],
@@ -265,7 +268,11 @@ class SistemaGestionResidentes:
                         row.get('tipo', 'Mantenimiento'),
                         row.get('prioridad', 'Media'),
                         row.get('estado', 'Pendiente'),
-                        row.get('fecha', '')
+                        row.get('fecha', ''),
+                        row.get('foto1', ''),
+                        row.get('foto2', ''),
+                        row.get('foto3', ''),
+                        row.get('nombre_reporta', row['usuario_id'])
                     )
                     self.reportes[rep.idReporte] = rep
         except Exception as e:
@@ -360,7 +367,7 @@ class SistemaGestionResidentes:
     def guardar_reportes_csv(self):
         try:
             with open(self.archivo_reportes, mode='w', newline='', encoding='utf-8') as f:
-                campos = ['idReporte', 'usuario_id', 'titulo', 'tipo', 'descripcion', 'fecha', 'prioridad', 'estado']
+                campos = ['idReporte', 'usuario_id', 'titulo', 'tipo', 'descripcion', 'fecha', 'prioridad', 'estado', 'foto1', 'foto2', 'foto3', 'nombre_reporta']
                 writer = csv.DictWriter(f, fieldnames=campos)
                 writer.writeheader()
                 for r in self.reportes.values():
@@ -372,7 +379,11 @@ class SistemaGestionResidentes:
                         'descripcion': r.descripcion,
                         'fecha': r.fecha,
                         'prioridad': r.prioridad,
-                        'estado': r.estado
+                        'estado': r.estado,
+                        'foto1': r.foto1,
+                        'foto2': r.foto2,
+                        'foto3': r.foto3,
+                        'nombre_reporta': r.nombre_reporta
                     })
             return True
         except Exception as e:
@@ -499,7 +510,7 @@ class SistemaGestionResidentes:
         return c
 
     # Gestión de reportes
-    def crear_reporte(self, usuario_id, titulo, tipo, descripcion, prioridad="Media"):
+    def crear_reporte(self, usuario_id, titulo, tipo, descripcion, prioridad="Media", foto1="", foto2="", foto3="", nombre_reporta=""):
         import re
         # Extraer solo los números del ID (ej: #12A -> 12)
         ids = []
@@ -511,7 +522,7 @@ class SistemaGestionResidentes:
         numeric_id = max(ids, default=0) + 1
         id_str = f"{numeric_id}A" # Genera 1A, 2A, etc.
 
-        rep = Reporte(id_str, usuario_id, descripcion, titulo, tipo, prioridad, "Pendiente")
+        rep = Reporte(id_str, usuario_id, descripcion, titulo, tipo, prioridad, "Pendiente", foto1=foto1, foto2=foto2, foto3=foto3, nombre_reporta=nombre_reporta)
         self.reportes[id_str] = rep
         self.guardar_reportes_csv()
         return rep
@@ -629,15 +640,19 @@ class Pago:
 
 
 class Reporte:
-    def __init__(self, idReporte, usuario_id, descripcion, titulo="", tipo="Mantenimiento", prioridad="Media", estado="Pendiente", fecha=None):
+    def __init__(self, idReporte, usuario_id, descripcion, titulo="", tipo="Mantenimiento", prioridad="Media", estado="Pendiente", fecha=None, foto1="", foto2="", foto3="", nombre_reporta=""):
         self.idReporte   = idReporte
         self.usuario_id  = usuario_id
+        self.nombre_reporta = nombre_reporta
         self.titulo      = titulo if titulo else f"{tipo} #{idReporte}"
         self.tipo        = tipo
         self.descripcion = descripcion
         self.prioridad   = prioridad
         self.estado      = estado
         self.fecha       = fecha if fecha else datetime.now().strftime("%Y-%m-%d")
+        self.foto1       = foto1
+        self.foto2       = foto2
+        self.foto3       = foto3
 
     def generarReporte(self):
         return {
@@ -649,4 +664,8 @@ class Reporte:
             "prioridad":   self.prioridad,
             "estado":      self.estado,
             "fecha":       self.fecha,
+            "foto1":       self.foto1,
+            "foto2":       self.foto2,
+            "foto3":       self.foto3,
+            "nombre_reporta": self.nombre_reporta
         }

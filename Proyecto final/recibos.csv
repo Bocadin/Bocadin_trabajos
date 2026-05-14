@@ -1,1 +1,2 @@
-idRecibo,usuario_id,total,estado
+idRecibo,usuario_id,total,estado,periodo
+1,1,22111.0,pendiente,

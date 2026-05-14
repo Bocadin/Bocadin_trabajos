@@ -148,6 +148,7 @@ def editar_perfil(usuario, ventana_padre):
     ctk.CTkButton(ventana_editar, text="Cancelar",
                   fg_color="transparent", text_color="red",
                   command=ventana_editar.destroy).pack(pady=5)
+    
 
 ##==========================
 # Panel de Usuario
@@ -202,8 +203,10 @@ def abrir_panel_usuario(usuario_obj):
     def on_nav_click(opcion):
         if opcion == "Editar Perfil":
             editar_perfil(usuario_obj, ventana_panel)
+        elif opcion == "Recibos":
+            abrir_mis_recibos(usuario_obj)
         elif opcion == "Reportes":
-            abrir_reportes(usuario_obj)
+            abrir_reportes_usuario(usuario_obj)
 
     botones_nav = [
         ("👤 Editar Perfil", "Editar Perfil"),
@@ -746,9 +749,9 @@ def abrir_generar_recibo(admin_obj):
 
 
 # ==========================
-# VENTANA REPORTES
+# VENTANA REPORTES ADMIN
 # ==========================
-def abrir_reportes(admin_obj):
+def abrir_reportes_admin(admin_obj):
 
     ventana_reportes = ctk.CTkToplevel()
     ventana_reportes.title("Gestión de Reportes y Estadísticas")
@@ -865,13 +868,14 @@ def abrir_reportes(admin_obj):
 
     table_header = ctk.CTkFrame(left_container, fg_color="#0D7A32", height=42, corner_radius=10)
     table_header.pack(fill="x", padx=14)
-    table_header.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    table_header.grid_columnconfigure(0, weight=3, uniform="cols")
+    table_header.grid_columnconfigure((1, 2, 3), weight=1, uniform="cols")
 
     headers = [
         "Tipo / Título",
-        "Fecha",
-        "Prioridad",
-        "Estado"
+        "  Fecha",
+        "  Prioridad",
+        "  Estado"
     ]
 
     for i, h in enumerate(headers):
@@ -895,30 +899,58 @@ def abrir_reportes(admin_obj):
 
     ctk.CTkLabel(right_container, text="ℹ️ Información", font=("Arial", 18, "bold"), text_color="#1B4332").pack(pady=(18, 12))
 
-    details_card = ctk.CTkFrame(right_container, fg_color="#F7FBF7", corner_radius=15, border_width=1, border_color="#E5E5E5", height=170)
-    details_card.pack(fill="x",padx=15)
-    details_card.pack_propagate(False)
+    # EVIDENCIAS ADMIN (Ahora arriba)
+    evidence_frame = ctk.CTkFrame(right_container, fg_color="transparent")
+    evidence_frame.pack(fill="x", padx=15, pady=5)
 
-    lbl_detail_icon = ctk.CTkLabel(details_card, text="📄", font=("Arial", 35), text_color="#B8C5B8")
-    lbl_detail_icon.pack(pady=(20, 5))
+    photos_container = ctk.CTkFrame(evidence_frame, fg_color="transparent")
+    photos_container.pack(fill="x", pady=5)
 
-    lbl_detail_txt = ctk.CTkLabel(details_card, text="Seleccione un reporte", font=("Arial", 11), text_color="#777777",justify="center")
-    lbl_detail_txt.pack()
-
-    # BOTONES
+    # BOTONES (Al fondo)
     actions_frame = ctk.CTkFrame(right_container, fg_color="transparent")
-    actions_frame.pack(fill="x", padx=15, pady=15)
+    actions_frame.pack(side="bottom", fill="x", padx=15, pady=15)
 
     def crear_boton(texto, color):
-
         btn = ctk.CTkButton(actions_frame, text=texto, fg_color=color, height=35, corner_radius=10, font=("Arial", 11, "bold"))
         btn.pack(fill="x", pady=3)
-
         return btn
 
     btn_edit_st = crear_boton("📝 Editar estado", "#0E7A32")
     btn_assign = crear_boton("👤 Asignar", "#173B73")
     btn_delete = crear_boton("🗑️ Eliminar", "#B30000")
+
+    details_card = ctk.CTkFrame(right_container, fg_color="#F7FBF7", corner_radius=15, border_width=1, border_color="#E5E5E5")
+    details_card.pack(fill="both", expand=True, padx=15, pady=5)
+
+    lbl_detail_txt = ctk.CTkTextbox(details_card, font=("Arial", 12), text_color="#333333", fg_color="transparent", border_width=0)
+    lbl_detail_txt.pack(fill="both", expand=True, padx=10, pady=10)
+    lbl_detail_txt.insert("1.0", "Seleccione un reporte de la lista")
+    lbl_detail_txt.configure(state="disabled")
+
+    def mostrar_evidencias(rep):
+        for w in photos_container.winfo_children():
+            w.destroy()
+        
+        fotos = [rep.foto1, rep.foto2, rep.foto3]
+        hay_fotos = False
+        for f_path in fotos:
+            if f_path and os.path.exists(f_path):
+                hay_fotos = True
+                try:
+                    img_p = Image.open(f_path)
+                    img_ctk = ctk.CTkImage(img_p, size=(100, 100))
+                    lbl_img = ctk.CTkLabel(photos_container, image=img_ctk, text="")
+                    lbl_img.pack(side="left", padx=5)
+                except:
+                    pass
+        
+        if not hay_fotos:
+            try:
+                img_def = ctk.CTkImage(Image.open(os.path.join(os.path.dirname(__file__), "logosac.png")), size=(100, 100))
+                ctk.CTkLabel(photos_container, image=img_def, text="Sin evidencias", compound="top", font=("Inter", 10)).pack(side="left")
+            except:
+                ctk.CTkLabel(photos_container, text="📷 Sin evidencias", font=("Arial", 10, "italic"), text_color="gray").pack(side="left")
+
 
     # lógica de selección y acciones sobre reportes
     rep_sel = [None]
@@ -937,14 +969,29 @@ def abrir_reportes(admin_obj):
 
         fila.configure(fg_color="#EEF8EF")
 
-        lbl_detail_txt.configure(
-            text=f"ID: #{rep.idReporte}\n\n"
-                 f"Usuario: {rep.usuario_id}\n"
-                 f"Fecha: {rep.fecha}\n"
-                 f"Estado: {rep.estado}\n\n"
-                 f"{rep.descripcion}",
-            text_color="#333333"
+        # Intentar buscar nombre real si nombre_reporta es un ID o es el nombre guardado
+        quien_reporta = rep.nombre_reporta
+        if rep.usuario_id in sistema_back.usuarios:
+            user = sistema_back.usuarios[rep.usuario_id]
+            if user.nombre_completo:
+                quien_reporta = f"{user.nombre_completo} (ID: {rep.usuario_id})"
+        
+        info_str = (
+            f"ID: #{rep.idReporte}\n"
+            f"Reportado por: {quien_reporta}\n"
+            f"Fecha: {rep.fecha}\n"
+            f"Prioridad: {rep.prioridad}\n"
+            f"Estado: {rep.estado}\n\n"
+            f"DESCRIPCIÓN:\n"
+            f"{rep.descripcion}"
         )
+        
+        lbl_detail_txt.configure(state="normal")
+        lbl_detail_txt.delete("1.0", "end")
+        lbl_detail_txt.insert("1.0", info_str)
+        lbl_detail_txt.configure(state="disabled")
+        
+        mostrar_evidencias(rep)
 
     def cargar_tabla_reps(*args):
         for w in scroll_reps.winfo_children():
@@ -967,7 +1014,8 @@ def abrir_reportes(admin_obj):
 
             fila = ctk.CTkFrame(scroll_reps, fg_color="transparent", corner_radius=8, height=45)
             fila.pack(fill="x", padx=3, pady=2)
-            fila.grid_columnconfigure((0,1,2,3), weight=1)
+            fila.grid_columnconfigure(0, weight=3, uniform="cols")
+            fila.grid_columnconfigure((1,2,3), weight=1, uniform="cols")
 
             ic = icons_map.get(r.tipo, "📝")
 
@@ -1029,9 +1077,12 @@ def abrir_reportes(admin_obj):
             rep_sel[0] = None
             cargar_tabla_reps()
             refrescar_stats()
-            lbl_detail_txt.configure(
-                text="Seleccione un reporte"
-            )
+            lbl_detail_txt.configure(state="normal")
+            lbl_detail_txt.delete("1.0", "end")
+            lbl_detail_txt.insert("1.0", "Seleccione un reporte")
+            lbl_detail_txt.configure(state="disabled")
+            for w in photos_container.winfo_children():
+                w.destroy()
 
     btn_edit_st.configure(command=editar_st)
     btn_delete.configure(command=eliminar_rep_ui)
@@ -1039,7 +1090,338 @@ def abrir_reportes(admin_obj):
 
     cargar_tabla_reps()
 
-##========================== 
+# ==========================
+# VENTANA REPORTES USUARIO
+# ==========================
+def abrir_reportes_usuario(usuario_obj):
+    ventana_rep_u = ctk.CTkToplevel()
+    ventana_rep_u.title("Centro de Reportes e Incidencias")
+    ventana_rep_u.geometry("700x750")
+    ventana_rep_u.configure(fg_color=Color_fondo)
+    ventana_rep_u.attributes("-topmost", True)
+
+    main_frame = ctk.CTkFrame(ventana_rep_u, fg_color="White", corner_radius=20)
+    main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+    # Encabezado con Icono
+    header = ctk.CTkFrame(main_frame, fg_color="transparent")
+    header.pack(fill="x", padx=20, pady=10)
+
+    try:
+        # Intentar cargar icono_reporteus
+        img_p = Image.open(os.path.join(os.path.dirname(__file__), "iconos", "icono_reporteus.png"))
+        img_ctk = ctk.CTkImage(img_p, size=(80, 80))
+        lbl_icon = ctk.CTkLabel(header, image=img_ctk, text="")
+    except:
+        lbl_icon = ctk.CTkLabel(header, text="📋", font=("Arial", 60))
+    
+    lbl_icon.pack(side="left", padx=10)
+
+    title_frame = ctk.CTkFrame(header, fg_color="transparent")
+    title_frame.pack(side="left", fill="both", expand=True)
+
+    ctk.CTkLabel(title_frame, text="CENTRO DE REPORTES E INCIDENCIAS", 
+                 font=("Inter", 24, "bold"), text_color="#1B4332").pack(anchor="w")
+    
+    status_bar = ctk.CTkFrame(title_frame, fg_color=Color_texto_oscuro, corner_radius=20, height=45)
+    status_bar.pack(fill="x", pady=10)
+    
+    ctk.CTkLabel(status_bar, text="Reporta:", text_color="white", font=("Inter", 14, "bold")).pack(side="left", padx=(15, 5))
+    ent_nombre_rep = ctk.CTkEntry(status_bar, placeholder_text="Nombre Completo", fg_color="white", text_color="black", height=30)
+    ent_nombre_rep.pack(side="left", fill="x", expand=True, padx=10, pady=5)
+    ent_nombre_rep.insert(0, usuario_obj.nombre_completo)
+
+    # Datos Generales
+    datos_frame = ctk.CTkLabel(main_frame, text="Datos Generales", font=("Inter", 14, "bold"), text_color="gray")
+    datos_frame.pack(anchor="w", padx=30, pady=(10, 0))
+
+    container_datos = ctk.CTkFrame(main_frame, fg_color="#F3F4F6", corner_radius=15, border_width=1, border_color="#D1D5DB")
+    container_datos.pack(fill="x", padx=25, pady=5)
+
+    # Categoría y Asunto
+    row1 = ctk.CTkFrame(container_datos, fg_color="transparent")
+    row1.pack(fill="x", padx=15, pady=10)
+
+    ctk.CTkLabel(row1, text="Categoría:", font=("Inter", 13, "bold"), text_color="black").pack(side="left", padx=5)
+    combo_cat = ctk.CTkComboBox(row1, values=["Mantenimiento", "Limpieza", "Seguridad", "Reserva", "Otro"], 
+                                fg_color="white", text_color="black", button_color="#1B4332")
+    combo_cat.pack(side="left", padx=10, expand=True, fill="x")
+
+    ctk.CTkLabel(row1, text="Asunto:", font=("Inter", 13, "bold"), text_color="black").pack(side="left", padx=5)
+    ent_asunto = ctk.CTkEntry(row1, placeholder_text="Ej: Falla luminaria pasillo B...", fg_color="white", text_color="black")
+    ent_asunto.pack(side="left", padx=10, expand=True, fill="x")
+
+    # Descripción
+    ctk.CTkLabel(container_datos, text="Descripción:", font=("Inter", 13, "bold"), text_color="black").pack(anchor="w", padx=20)
+    txt_desc = ctk.CTkTextbox(container_datos, height=100, fg_color="white", text_color="black", border_width=1, border_color="#D1D5DB")
+    txt_desc.pack(fill="x", padx=15, pady=(0, 15))
+
+    # Evidencia
+    ctk.CTkLabel(main_frame, text="Evidencia de la Incidencia", font=("Inter", 14, "bold"), text_color="gray").pack(anchor="w", padx=30, pady=(10, 0))
+    
+    container_ev = ctk.CTkFrame(main_frame, fg_color="#F3F4F6", corner_radius=15, border_width=1, border_color="#D1D5DB")
+    container_ev.pack(fill="x", padx=25, pady=5)
+
+    ctk.CTkLabel(container_ev, text="Arrastrar y Soltar o Clic para Adjuntar", font=("Inter", 12), text_color="#6B7280").pack(pady=5)
+
+    ev_buttons_frame = ctk.CTkFrame(container_ev, fg_color="transparent")
+    ev_buttons_frame.pack(fill="x", padx=15, pady=10)
+
+    fotos_paths = ["", "", ""]
+
+    def adjuntar_foto(idx):
+        archivo = filedialog.askopenfilename(filetypes=[("Imágenes", "*.png *.jpg *.jpeg")])
+        if archivo:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            carpeta_reps = os.path.join(base_dir, "evidencias_reportes")
+            os.makedirs(carpeta_reps, exist_ok=True)
+            
+            nombre_archivo = f"rep_{usuario_obj.idUsuario}_{idx}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{os.path.basename(archivo)}"
+            destino = os.path.join(carpeta_reps, nombre_archivo)
+            shutil.copy(archivo, destino)
+            fotos_paths[idx] = destino
+            
+            # Actualizar botón con miniatura o éxito
+            btns_ev[idx].configure(text="✅ Cargada", fg_color="#10B981")
+
+    btns_ev = []
+    for i in range(3):
+        btn = ctk.CTkButton(ev_buttons_frame, text=f"Adjuntar Foto {i+1}", 
+                            fg_color="white", text_color="#1B4332", border_width=2, border_color="#1B4332",
+                            hover_color="#E5E7EB", height=80, command=lambda idx=i: adjuntar_foto(idx))
+        btn.pack(side="left", expand=True, padx=10, fill="both")
+        btns_ev.append(btn)
+
+    # Footer
+    footer = ctk.CTkFrame(main_frame, fg_color="transparent")
+    footer.pack(fill="x", padx=25, pady=20)
+
+    lbl_fecha = ctk.CTkLabel(footer, text=f"Fecha y Hora Actual: {datetime.now().strftime('%d %b %Y, %H:%M')}", 
+                             font=("Inter", 12, "bold"), text_color="gray")
+    lbl_fecha.pack(side="left")
+
+    btn_cancelar = ctk.CTkButton(footer, text="✖ Cancelar", fg_color="white", text_color="#B91C1C", 
+                                 border_width=2, border_color="#B91C1C", hover_color="#FEE2E2", 
+                                 width=120, command=ventana_rep_u.destroy)
+    btn_cancelar.pack(side="right", padx=10)
+
+    def enviar_reporte():
+        asunto = ent_asunto.get().strip()
+        desc = txt_desc.get("1.0", "end-1c").strip()
+        cat = combo_cat.get()
+        nom_rep = ent_nombre_rep.get().strip()
+        
+        if not asunto or not desc or not nom_rep:
+            mostrar_error("Por favor completa todos los campos.")
+            return
+        
+        sistema_back.crear_reporte(
+            usuario_id=usuario_obj.idUsuario,
+            titulo=asunto,
+            tipo=cat,
+            descripcion=desc,
+            prioridad="Media",
+            foto1=fotos_paths[0],
+            foto2=fotos_paths[1],
+            foto3=fotos_paths[2],
+            nombre_reporta=nom_rep
+        )
+        mostrar_exito()
+        ventana_rep_u.destroy()
+
+    btn_enviar = ctk.CTkButton(footer, text="🚀 Enviar Reporte", fg_color=Color_boton_oscuro, text_color="white", 
+                               hover_color="#14532D", width=150, command=enviar_reporte)
+
+# ===========================
+# VENTANA MIS RECIBOS
+# ===========================
+def abrir_mis_recibos(usuario_obj):
+    ventana_recibos = ctk.CTkToplevel()
+    ventana_recibos.title("Mis Recibos")
+    ventana_recibos.geometry("1100x750")
+    ventana_recibos.configure(fg_color=Color_fondo)
+    ventana_recibos.attributes("-topmost", True)
+
+    # Layout Principal
+    ventana_recibos.grid_columnconfigure(0, weight=6)
+    ventana_recibos.grid_columnconfigure(1, weight=4)
+    ventana_recibos.grid_rowconfigure(0, weight=1)
+
+    # PANEL IZQUIERDO: LISTA Y FILTROS
+    left_panel = ctk.CTkFrame(ventana_recibos, fg_color="transparent")
+    left_panel.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+    
+    # --- Controles de Búsqueda ---
+    search_frame = ctk.CTkFrame(left_panel, fg_color="white", corner_radius=15, border_width=1, border_color="#D1D5DB")
+    search_frame.pack(fill="x", pady=(0, 20))
+    
+    ctk.CTkLabel(search_frame, text="Controles de Búsqueda", font=("Inter", 16, "bold"), text_color="#374151").pack(anchor="w", padx=15, pady=(10, 5))
+    
+    controls_row = ctk.CTkFrame(search_frame, fg_color="transparent")
+    controls_row.pack(fill="x", padx=15, pady=(0, 15))
+    
+    # Mes
+    ctk.CTkLabel(controls_row, text="Mes", font=("Inter", 12), text_color="gray").grid(row=0, column=0, padx=5, sticky="w")
+    combo_mes = ctk.CTkComboBox(controls_row, values=["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre", "Todos"], width=120)
+    combo_mes.set("Todos")
+    combo_mes.grid(row=1, column=0, padx=5)
+    
+    # Año
+    ctk.CTkLabel(controls_row, text="Año", font=("Inter", 12), text_color="gray").grid(row=0, column=1, padx=5, sticky="w")
+    combo_anio = ctk.CTkComboBox(controls_row, values=["2023", "2024", "2025", "Todos"], width=100)
+    combo_anio.set("Todos")
+    combo_anio.grid(row=1, column=1, padx=5)
+    
+    # Estado
+    ctk.CTkLabel(controls_row, text="Estado", font=("Inter", 12), text_color="gray").grid(row=0, column=2, padx=5, sticky="w")
+    status_filter_frame = ctk.CTkFrame(controls_row, fg_color="transparent")
+    status_filter_frame.grid(row=1, column=2, padx=5)
+    
+    filter_status = ctk.StringVar(value="Todos")
+    
+    def set_status(val):
+        filter_status.set(val)
+        cargar_recibos()
+
+    btn_f_pagado = ctk.CTkButton(status_filter_frame, text="✓ Pagado", fg_color="#065F46", width=90, height=32, command=lambda: set_status("pagado"))
+    btn_f_pagado.pack(side="left", padx=2)
+    
+    btn_f_pend = ctk.CTkButton(status_filter_frame, text="⚠ Pendiente", fg_color="#991B1B", width=100, height=32, command=lambda: set_status("pendiente"))
+    btn_f_pend.pack(side="left", padx=2)
+
+    # --- Panel de Filtros y Resumen ---
+    list_container = ctk.CTkFrame(left_panel, fg_color="transparent")
+    list_container.pack(fill="both", expand=True)
+    
+    ctk.CTkLabel(list_container, text="Panel de Filtros y Resumen", font=("Inter", 16, "bold"), text_color="#374151").pack(anchor="w", pady=(0, 10))
+    
+    scroll_recibos = ctk.CTkScrollableFrame(list_container, fg_color="transparent")
+    scroll_recibos.pack(fill="both", expand=True)
+
+    # PANEL DERECHO: PREVISUALIZACION
+    right_panel = ctk.CTkFrame(ventana_recibos, fg_color="white", corner_radius=20, border_width=1, border_color="#D1D5DB")
+    right_panel.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+    
+    ctk.CTkLabel(right_panel, text="Previsualización Completa\ndel Recibo", font=("Inter", 18, "bold"), text_color="#111827", justify="left").pack(anchor="w", padx=20, pady=20)
+    
+    receipt_paper = ctk.CTkFrame(right_panel, fg_color="white", corner_radius=10, border_width=1, border_color="#E5E7EB")
+    receipt_paper.pack(fill="both", expand=True, padx=20, pady=5)
+    
+    txt_preview = ctk.CTkTextbox(receipt_paper, font=("Inter", 11), text_color="#111827", fg_color="white", border_width=0)
+    txt_preview.pack(fill="both", expand=True, padx=15, pady=15)
+    txt_preview.insert("1.0", "\n\n\n\n      Seleccione un recibo para visualizar")
+    txt_preview.configure(state="disabled")
+
+    actions_row = ctk.CTkFrame(right_panel, fg_color="transparent")
+    actions_row.pack(fill="x", pady=20, padx=20)
+
+    btn_print = ctk.CTkButton(actions_row, text="🖨️ Imprimir", fg_color="transparent", text_color="black", border_width=1, border_color="gray",
+                               font=("Inter", 13, "bold"), command=lambda: messagebox.showinfo("Impresora", "Imprimiendo..."))
+    btn_print.pack(side="right", padx=5)
+
+    # LOGICA
+    icons_map = {
+        "Energía Eléctrica": "⚡",
+        "Agua Potable": "💧",
+        "Mantenimiento": "🛠️",
+        "Seguridad": "🛡️",
+        "Limpieza": "🧹",
+        "Internet": "🌐"
+    }
+    
+    meses_map = {
+        "Enero": "01", "Febrero": "02", "Marzo": "03", "Abril": "04",
+        "Mayo": "05", "Junio": "06", "Julio": "07", "Agosto": "08",
+        "Septiembre": "09", "Octubre": "10", "Noviembre": "11", "Diciembre": "12"
+    }
+
+    filas = []
+
+    def seleccionar_recibo(rec, fila):
+        for f in filas:
+            f.configure(border_color="#D1D5DB", border_width=1)
+        fila.configure(border_color="#1B4332", border_width=2)
+        
+        txt_preview.configure(state="normal")
+        txt_preview.delete("1.0", "end")
+        
+        content = f"\n"
+        content += f"      {'CONDOMINIO SAC':^40}\n"
+        content += f"      {'='*30}\n\n"
+        content += f"      Número del Recibo: {rec.idRecibo}\n"
+        content += f"      Periodo: {rec.periodo}\n"
+        content += f"      Usuario: {usuario_obj.nombre_completo}\n\n"
+        content += f"      {'Servicio':<20} {'Total':>10}\n"
+        content += f"      {'-'*31}\n"
+        
+        for c in rec.consumos:
+            serv = sistema_back.servicios.get(c.servicio_id)
+            nom = serv.nombre if serv else c.servicio_id
+            monto = c.total(sistema_back)
+            content += f"      {nom[:18]:<20} ${monto:>10.2f}\n"
+            
+        content += f"      {'-'*31}\n"
+        content += f"      {'TOTAL:':<20} ${rec.total_pagar:>10.2f}\n\n"
+        content += f"      Estado del Pago: {rec.estado.upper()}\n"
+        content += f"      {'-'*31}\n"
+        content += f"      {'Gracias por su pago':^31}\n"
+        
+        txt_preview.insert("1.0", content)
+        txt_preview.configure(state="disabled")
+
+    def cargar_recibos(*args):
+        for w in scroll_recibos.winfo_children():
+            w.destroy()
+        filas.clear()
+        
+        sel_mes = meses_map.get(combo_mes.get(), "Todos")
+        sel_anio = combo_anio.get()
+        sel_stat = filter_status.get()
+        
+        mis_recs = [r for r in sistema_back.recibos.values() if str(getattr(r.usuario, 'idUsuario', r.usuario)) == str(usuario_obj.idUsuario)]
+        
+        for r in mis_recs:
+            if sel_mes != "Todos" and f"-{sel_mes}" not in r.periodo: continue
+            if sel_anio != "Todos" and sel_anio not in r.periodo: continue
+            if sel_stat != "Todos" and r.estado != sel_stat: continue
+            
+            main_serv_name = "Servicios Varios"
+            icon = "📄"
+            if r.consumos:
+                serv = sistema_back.servicios.get(r.consumos[0].servicio_id)
+                if serv:
+                    main_serv_name = serv.nombre
+                    icon = icons_map.get(serv.nombre, "📄")
+
+            f = ctk.CTkFrame(scroll_recibos, fg_color="white", corner_radius=12, border_width=1, border_color="#D1D5DB", height=80)
+            f.pack(fill="x", pady=5)
+            f.pack_propagate(False)
+            
+            ctk.CTkLabel(f, text=icon, font=("Arial", 24)).place(x=20, rely=0.5, anchor="w")
+            ctk.CTkLabel(f, text=f"{main_serv_name} - {r.periodo}", font=("Inter", 14, "bold"), text_color="#111827").place(x=60, y=15)
+            
+            badge_color = "#D1FAE5" if r.estado == "pagado" else "#FEE2E2"
+            text_color = "#065F46" if r.estado == "pagado" else "#991B1B"
+            badge = ctk.CTkFrame(f, fg_color=badge_color, corner_radius=8)
+            badge.place(x=60, y=45)
+            ctk.CTkLabel(badge, text=r.estado.capitalize(), font=("Inter", 11, "bold"), text_color=text_color).pack(padx=8, pady=2)
+            
+            ctk.CTkLabel(f, text=f"${r.total_pagar:.2f}", font=("Inter", 18, "bold"), text_color="#111827").place(relx=0.95, rely=0.5, anchor="e")
+            
+            f.bind("<Button-1>", lambda e, r=r, f=f: seleccionar_recibo(r, f))
+            for child in f.winfo_children():
+                child.bind("<Button-1>", lambda e, r=r, f=f: seleccionar_recibo(r, f))
+                if isinstance(child, ctk.CTkFrame):
+                    for gc in child.winfo_children():
+                        gc.bind("<Button-1>", lambda e, r=r, f=f: seleccionar_recibo(r, f))
+            
+            filas.append(f)
+
+    combo_mes.configure(command=cargar_recibos)
+    combo_anio.configure(command=cargar_recibos)
+    cargar_recibos()
+
+##==========================
 # Panel de Administrador
 #===========================
 
@@ -1125,7 +1507,7 @@ def abrir_panel_admin(usuario_obj):
                   command=lambda: abrir_registro_consumo(usuario_obj)).pack(fill="x", pady=15)
 
     ctk.CTkButton(frame_der, text="📊 Ver Reportes", fg_color=Color_boton_oscuro,
-                  corner_radius=12, font=("Arial", 15, "bold"), height=55, command=lambda: abrir_reportes(usuario_obj)
+                  corner_radius=12, font=("Arial", 15, "bold"), height=55, command=lambda: abrir_reportes_admin(usuario_obj)
                   ).pack(fill="x", pady=15)
 
     ctk.CTkButton(frame_der, text="💰 Generar Recibo de Pago", height=55,
@@ -1190,7 +1572,7 @@ def abrir_olvido_pass():
 # ===========================
 
 def abrir_login_usuario():
-# Ventana de login que conecta con el backend
+    # Ventana de login que conecta con el backend
     ventana_menu.withdraw()
 
     ventana_login = ctk.CTkToplevel(ventana_principal)
@@ -1200,37 +1582,38 @@ def abrir_login_usuario():
     ventana_login.attributes("-topmost", True)
 
     main_frame = ctk.CTkFrame(ventana_login, fg_color="#BCDFC2", corner_radius=20, border_width=0)
-    main_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER, relwidth=0.8, relheight=0.8)
+    main_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER, relwidth=0.8, relheight=0.8 )
 
     ctk.CTkLabel(main_frame, text="🔑 Ingreso Usuario", font=("Arial", 24, "bold"), text_color="#162440").pack(pady=20)
 
     ent_user = ctk.CTkEntry(main_frame, placeholder_text="Nombre de Usuario", width=250, height=35, border_width=2, corner_radius=10)
     ent_user.pack(pady=10)
 
-    ent_pass = ctk.CTkEntry(main_frame, placeholder_text="Contraseña", show="*", width=250, height=35, border_width=2, corner_radius=10)
+    ent_pass = ctk.CTkEntry(main_frame, placeholder_text="Contraseña", show="*", width=250,  height=35, border_width=2, corner_radius=10)
     ent_pass.pack(pady=10)
 
     def intentar_login():
         u = ent_user.get()
         p = ent_pass.get()
+
         usuario = sistema_back.autenticar(u, p)
 
         if usuario == "usuario_pendiente":
             mostrar_error("Tu cuenta está pendiente de aprobación por el administrador")
-        elif usuario:
+
+        # Solo permitir usuarios normales
+        elif usuario and usuario.tipoUsuario != "admin":
             ventana_login.destroy()
-            if usuario.tipoUsuario == "admin":
-                abrir_panel_admin(usuario)
-            else:
-                abrir_panel_usuario(usuario)
+            abrir_panel_usuario(usuario)
+
         else:
-            mostrar_error("Usuario o contraseña incorrectos")
+            mostrar_error("Credenciales de usuario incorrectas")
 
     ctk.CTkButton(main_frame, text="Entrar", fg_color=Color_boton_oscuro, command=intentar_login).pack(pady=15)
-    ctk.CTkButton(main_frame, text="Olvidé mi contraseña", fg_color="transparent", text_color="blue",
-                  hover=False, command=abrir_olvido_pass).pack()
-    ctk.CTkButton(main_frame, text="Volver",
-                  command=lambda: [ventana_login.destroy(), ventana_menu.deiconify()]).pack(pady=10)
+
+    ctk.CTkButton(main_frame, text="Olvidé mi contraseña", fg_color="transparent", text_color="blue", hover=False, command=abrir_olvido_pass).pack()
+
+    ctk.CTkButton(main_frame, text="Volver", command=lambda: [ventana_login.destroy(),ventana_menu.deiconify()]).pack(pady=10)
 
 # ===========================
 # Login de Administrador

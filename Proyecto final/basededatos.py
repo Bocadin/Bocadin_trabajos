@@ -77,7 +77,11 @@ def crear_base_csv():
         "descripcion",
         "fecha",
         "prioridad",
-        "estado"
+        "estado",
+        "foto1",
+        "foto2",
+        "foto3",
+        "nombre_reporta"
     ])
 
 
