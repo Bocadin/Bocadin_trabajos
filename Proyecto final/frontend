@@ -205,6 +205,8 @@ def abrir_panel_usuario(usuario_obj):
             editar_perfil(usuario_obj, ventana_panel)
         elif opcion == "Recibos":
             abrir_mis_recibos(usuario_obj)
+        elif opcion == "Pagos":
+            abrir_ventana_pagos(usuario_obj)
         elif opcion == "Reportes":
             abrir_reportes_usuario(usuario_obj)
 
@@ -274,478 +276,706 @@ def abrir_panel_usuario(usuario_obj):
     add_detail("Correo:", correo)
 
 ##==========================
-# Ventana Gestión de Servicios
+# VENTANA GESTIÓN DE SERVICIOS
 #===========================
 
 def abrir_gestion_servicios(admin_obj):
-    #Crea la ventana secundaria para gestionar los servicios 
+    # Ventana rediseñada según imagen de referencia
     ventana_servicios = ctk.CTkToplevel(ventana_principal)
     ventana_servicios.title("Gestión de Servicios")
-    ventana_servicios.geometry("850x550")
-    ventana_servicios.configure(fg_color="white")
+    ventana_servicios.geometry("1100x700")
+    ventana_servicios.configure(fg_color=Color_fondo)
     ventana_servicios.attributes("-topmost", True)
+
+    # Barra superior para el botón de cerrar
+    top_bar = ctk.CTkFrame(ventana_servicios, fg_color="transparent")
+    top_bar.pack(fill="x", padx=20, pady=(10, 0))
     
-    main_frame = ctk.CTkFrame(ventana_servicios, fg_color="#F4FDF4", border_color="#196D39", border_width=4, corner_radius=15)
-    main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+    btn_cerrar_v = ctk.CTkButton(top_bar, text="Cerrar", fg_color="#8B0000", text_color="white", 
+                                 width=35, height=35, corner_radius=10, font=("Arial", 16, "bold"),
+                                 hover_color="#BE123C", command=ventana_servicios.destroy)
+    btn_cerrar_v.pack(side="right")
 
-    title_bar = ctk.CTkFrame(main_frame, fg_color="#196D39", corner_radius=10, height=40)
-    title_bar.pack(fill="x", padx=0, pady=0)
+    main_frame = ctk.CTkFrame(ventana_servicios, fg_color="#C9E2CD", corner_radius=20)
+    main_frame.pack(fill="both", expand=True, padx=20, pady=(10, 20))
 
-    ctk.CTkButton(title_bar, text="X", fg_color="white", text_color="#196D39", width=30, height=20, font=("Arial", 12, "bold"),
-                  command=ventana_servicios.destroy).pack(side="right", padx=10, pady=10)
+    # Header con Filtros de Iconos (Unificado)
+    header_container = ctk.CTkFrame(main_frame, fg_color="white", corner_radius=15, border_width=1, border_color="#E2E8F0")
+    header_container.pack(fill="x", padx=20, pady=(20, 10))
+
+    ctk.CTkLabel(header_container, text="SERVICIOS", font=("Inter", 13, "bold"), text_color="#1E293B").pack(pady=(10, 0))
     
-    #Cuerpo principal dividido en izquierda y derecha 
-    content_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-    content_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    icons_row = ctk.CTkFrame(header_container, fg_color="transparent")
+    icons_row.pack(pady=10)
 
-    content_frame.grid_columnconfigure(0, weight=3)
-    content_frame.grid_columnconfigure(1, weight=1)
-    content_frame.grid_rowconfigure(0, weight=1)
-
-    # Panel Izquierdo
-    panel_izq = ctk.CTkFrame(content_frame, fg_color="transparent")
-    panel_izq.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
-
-    filtros_frame = ctk.CTkFrame(panel_izq, fg_color="transparent")
-    filtros_frame.pack(fill="x", pady=(10, 20))
-
-    f1_f2_frame = ctk.CTkFrame(filtros_frame, fg_color="transparent")
-    f1_f2_frame.pack(fill="x")
-
-    filtro_1 = ctk.CTkComboBox(f1_f2_frame, values=["Tipo: Todos", "Tipo: Medido", "Tipo: Fijo"],
-                               fg_color="#3B9C3D", text_color="white", button_color="#3B9C3D", border_width=0, height=30)
-    filtro_1.pack(side="left", padx=5, expand=True, fill="x")
-
-    filtro_2 = ctk.CTkComboBox(f1_f2_frame, values=["Mov: Todos", "Mov: Pendientes", "Mov: Pagados"],
-                               fg_color="#7A9C7A", text_color="white", button_color="#7A9C7A", border_width=0, height=30)
-    filtro_2.pack(side="left", padx=5, expand=True, fill="x")
-
-    filtro_3 = ctk.CTkEntry(filtros_frame, placeholder_text="Buscar servicio...",
-                            fg_color="#D1D5DB", text_color="black", border_width=0, height=30, justify="center")
-    filtro_3.pack(fill="x", padx=5, pady=(10, 0))
-
-    servicios_frame = ctk.CTkFrame(panel_izq, fg_color="transparent")
-    servicios_frame.pack(fill="both", expand=True)
-
-    # Panel Derecho (Botones y movimientos)
-    panel_derecho = ctk.CTkFrame(content_frame, fg_color="transparent")
-    panel_derecho.grid(row=0, column=1, sticky="nsew")
+    filtro_servicio_actual = ctk.StringVar(value="Todos")
     
-    #Separador vertical
-    separador = ctk.CTkFrame(content_frame, fg_color="#196D39", width=3)
-    separador.grid(row=0, column=0, sticky="nse", padx=0, pady=10)
+    def set_filtro_serv(n):
+        filtro_servicio_actual.set(n)
+        cargar_servicios()
+
+    def cargar_iconos_header():
+        for w in icons_row.winfo_children(): w.destroy()
+        
+        # Siempre incluir "Todos"
+        btn_f_all = ctk.CTkFrame(icons_row, fg_color="transparent")
+        btn_f_all.pack(side="left", padx=8)
+        
+        img_todos = cargar_icono("icono_todos.png")
+        if img_todos:
+            btn = ctk.CTkButton(btn_f_all, image=img_todos, text="", width=45, height=45, 
+                                 fg_color="#F8FAFC", hover_color="#E2E8F0", corner_radius=10,
+                                 command=lambda: set_filtro_serv("Todos"))
+        else:
+            btn = ctk.CTkButton(btn_f_all, text="📄", font=("Arial", 20), width=45, height=45, 
+                                 fg_color="#F8FAFC", hover_color="#E2E8F0", corner_radius=10,
+                                 command=lambda: set_filtro_serv("Todos"))
+        btn.pack()
+        ctk.CTkLabel(btn_f_all, text="Todos", font=("Inter", 9), text_color="gray").pack()
+
+        # Cargar iconos de servicios existentes
+        servicios_nombres = sorted(list(set([s.nombre for s in sistema_back.servicios.values()])))
+        for nombre in servicios_nombres:
+            btn_f = ctk.CTkFrame(icons_row, fg_color="transparent")
+            btn_f.pack(side="left", padx=8)
+            
+            icon_file = f"icono_{nombre.lower()}.png"
+            img_ctk = cargar_icono(icon_file)
+            
+            if img_ctk:
+                btn = ctk.CTkButton(btn_f, image=img_ctk, text="", width=45, height=45, 
+                                     fg_color="#F8FAFC", hover_color="#E2E8F0", corner_radius=10,
+                                     command=lambda n=nombre: set_filtro_serv(n))
+            else:
+                # Emojis predeterminados si no hay imagen
+                emojis = {"Agua": "💧", "Luz": "💡", "Gas": "🔥", "Seguridad": "🛡️", "Mantenimiento": "🛠️"}
+                emoji = emojis.get(nombre, "📄")
+                btn = ctk.CTkButton(btn_f, text=emoji, font=("Arial", 20), width=45, height=45, 
+                                     fg_color="#F8FAFC", hover_color="#E2E8F0", corner_radius=10,
+                                     command=lambda n=nombre: set_filtro_serv(n))
+            btn.pack()
+            ctk.CTkLabel(btn_f, text=nombre, font=("Inter", 9), text_color="gray").pack()
+
+    cargar_iconos_header()
+
+    # Barra de Filtros de Estado y Búsqueda
+    controls_bar = ctk.CTkFrame(main_frame, fg_color="transparent")
+    controls_bar.pack(fill="x", padx=20, pady=10)
+    
+    filtro_estado = ctk.StringVar(value="Ver Todo")
+    for st in ["Ver Todo", "Medido", "Cuota Fija"]:
+        btn = ctk.CTkButton(controls_bar, text=st, width=90, height=30, corner_radius=10,
+                             fg_color="#F8FAFC", text_color="#64748B", border_width=1, border_color="#E2E8F0",
+                             hover_color="#F1F5F9", command=lambda s=st: [filtro_estado.set(s), cargar_servicios()])
+        btn.pack(side="left", padx=5)
+
+    btn_reset = ctk.CTkButton(controls_bar, text="Borrar Filtros", width=100, height=30, fg_color="transparent", 
+                               text_color="#8B0000", hover_color="#FEF2F2", command=lambda: [filtro_servicio_actual.set("Todos"), filtro_estado.set("Ver Todo"), cargar_servicios()])
+    btn_reset.pack(side="right", padx=5)
+
+    # Cuerpo Principal
+    body_container = ctk.CTkFrame(main_frame, fg_color="transparent")
+    body_container.pack(fill="both", expand=True, padx=20, pady=10)
+
+    # Grid Izquierdo
+    grid_scroll = ctk.CTkScrollableFrame(body_container, fg_color="transparent")
+    grid_scroll.pack(side="left", fill="both", expand=True, padx=(0, 15))
+
+    # Sidebar Derecho
+    sidebar = ctk.CTkFrame(body_container, fg_color="transparent", width=280)
+    sidebar.pack(side="right", fill="y")
+    sidebar.pack_propagate(False)
+
+    # Botones Admin
+    ctk.CTkButton(sidebar, text="+ AGREGAR NUEVO SERVICIO", fg_color="#1E293B", height=45, corner_radius=10, font=("Inter", 12, "bold"), command=lambda: abrir_form_servicio(False)).pack(fill="x", pady=5)
+
+    # Sección Movimientos
+    mov_box = ctk.CTkFrame(sidebar, fg_color="#F8FAFC", corner_radius=15, border_width=1, border_color="#E2E8F0")
+    mov_box.pack(fill="both", expand=True, pady=20)
+    ctk.CTkLabel(mov_box, text="ÚLTIMOS MOVIMIENTOS", font=("Inter", 11, "bold"), text_color="#475569").pack(pady=10)
+
+    scroll_mov = ctk.CTkScrollableFrame(mov_box, fg_color="transparent")
+    scroll_mov.pack(fill="both", expand=True, padx=5, pady=5)
+
+    def cargar_movimientos():
+        for w in scroll_mov.winfo_children(): w.destroy()
+        for c in reversed(list(sistema_back.consumos.values())[-10:]):
+            s_nom = sistema_back.servicios[c.servicio_id].nombre if c.servicio_id in sistema_back.servicios else "Srv"
+            txt = f"{'✅' if c.estado=='pagado' else '⏳'} {s_nom}: ${c.total(sistema_back):.1f}"
+            ctk.CTkLabel(scroll_mov, text=txt, font=("Inter", 11), text_color="#64748B", anchor="w").pack(pady=2, fill="x")
+
+    cargar_movimientos()
 
     servicio_seleccionado = ctk.StringVar(value="")
 
-    def seleccionar_servicio(s_id):
-        #Guarda el ID del servicio seleccionado y recarga la cuadricula para actualizar bordes
-        servicio_seleccionado.set(s_id)
-        cargar_servicios()
+    def cargar_servicios():
+        for w in grid_scroll.winfo_children(): w.destroy()
+        f_s = filtro_servicio_actual.get()
+        f_e = filtro_estado.get()
+        
+        col, row = 0, 0
+        grid_scroll.grid_columnconfigure((0, 1), weight=1)
 
-    def cargar_servicios(*args):
-        #Limpia la vista y vuelve a generar los botones de los servicios
-        for widget in servicios_frame.winfo_children():
-            widget.destroy()
-
-        col = 0
-        row = 0
-        colores = [
-            ("#C9E4FF", "#3B82F6"),
-            ("#FFF9C4", "#F59E0B"),
-            ("#D7CCC8", "#8D6E63"),
-            ("#FFCDD2", "#EF5350"),
-            ("#C8E6C9", "#4CAF50")
-        ]
-
-        tipo_filtro = filtro_1.get()
-        busqueda = filtro_3.get().lower()
-
-        idx = 0
         for s_id, s in sistema_back.servicios.items():
-            if tipo_filtro == "Tipo: Medido" and s.tipo != "medido":
-                continue
-            if tipo_filtro == "Tipo: Fijo" and s.tipo != "fijo":
-                continue
-            if busqueda and busqueda not in s.nombre.lower():
-                continue
+            if f_s != "Todos" and f_s.lower() not in s.nombre.lower(): continue
+            if f_e == "Medido" and s.tipo != "medido": continue
+            if f_e == "Cuota Fija" and s.tipo != "fijo": continue
 
-            bg_color, border_color = colores[idx % len(colores)]
-            idx += 1
-           
-            #Resaltar si esta selccionado
-            is_sel = (servicio_seleccionado.get() == s_id)
-            current_border = "#000000" if is_sel else border_color
-            b_width = 5 if is_sel else 3
+            card = ctk.CTkFrame(grid_scroll, fg_color="white", corner_radius=15, border_width=1, border_color="#F1F5F9")
+            card.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
 
-            btn = ctk.CTkButton(servicios_frame, text=f"{s.nombre.upper()}\n${s.tarifa}",
-                                font=("Consolas", 18, "bold"), text_color="black",
-                                fg_color=bg_color, hover_color=bg_color,
-                                border_color=current_border, border_width=b_width,
-                                width=150, height=100, corner_radius=20,
-                                command=lambda id_s=s_id: seleccionar_servicio(id_s))
-            btn.grid(row=row, column=col, padx=15, pady=15, sticky="nsew")
+            # Header Card
+            card_head = ctk.CTkFrame(card, fg_color="transparent")
+            card_head.pack(fill="x", padx=15, pady=15)
+            
+            icon_img = cargar_icono(f"icono_{s.nombre.lower()}.png")
+            if icon_img: ctk.CTkLabel(card_head, image=icon_img, text="").pack(side="left")
+            else: ctk.CTkLabel(card_head, text="📄", font=("Arial", 20)).pack(side="left")
+
+            info_f = ctk.CTkFrame(card_head, fg_color="transparent")
+            info_f.pack(side="left", padx=10)
+            ctk.CTkLabel(info_f, text=s.nombre.upper(), font=("Inter", 14, "bold"), text_color="#1E293B").pack(anchor="w")
+            ctk.CTkLabel(info_f, text=f"Tipo: {s.tipo}", font=("Inter", 10), text_color="#94A3B8").pack(anchor="w")
+
+            badge = ctk.CTkFrame(card, fg_color="#DCFCE7", corner_radius=8)
+            badge.pack(anchor="w", padx=15)
+            ctk.CTkLabel(badge, text="Activo", font=("Inter", 10, "bold"), text_color="#166534").pack(padx=8, pady=2)
+
+            ctk.CTkLabel(card, text=f"${s.tarifa:.2f} / {('u' if s.tipo=='medido' else 'mes')}", font=("Inter", 22, "bold"), text_color="#0F172A").pack(anchor="w", padx=15, pady=10)
+
+            btns = ctk.CTkFrame(card, fg_color="transparent")
+            btns.pack(fill="x", padx=15, pady=(0, 15))
+            
+            ctk.CTkButton(btns, text="Editar", width=70, height=30, fg_color="#F1F5F9", text_color="#475569", command=lambda i=s_id: [servicio_seleccionado.set(i), abrir_form_servicio(True)]).pack(side="left", padx=2, expand=True, fill="x")
+            
+            ctk.CTkButton(btns, text="Cuentas", width=80, height=30, fg_color="#1E293B", font=("Inter", 10, "bold"),
+                           command=lambda i=s_id: abrir_cuentas_servicio(i)).pack(side="left", padx=2, expand=True, fill="x")
+            
+            ctk.CTkButton(btns, text="🗑️", width=30, height=30, fg_color="#FEF2F2", text_color="#8B0000", hover_color="#FEE2E2", command=lambda i=s_id: [servicio_seleccionado.set(i), eliminar_servicio_ui()]).pack(side="left", padx=2)
+
             col += 1
-            if col > 1:
-                col = 0
-                row += 1
+            if col > 1: col, row = 0, row + 1
 
-    filtro_1.configure(command=cargar_servicios)
-    filtro_3.bind("<KeyRelease>", cargar_servicios)
+    def eliminar_servicio_ui():
+        if servicio_seleccionado.get() and messagebox.askyesno("Confirmar", "¿Eliminar servicio?"):
+            sistema_back.eliminar_servicio(servicio_seleccionado.get())
+            cargar_servicios()
+
+    def abrir_cuentas_servicio(s_id):
+        s_obj = sistema_back.servicios.get(s_id)
+        if not s_obj: return
+        
+        ventana_cuentas = ctk.CTkToplevel(ventana_servicios)
+        ventana_cuentas.title(f"Cuentas: {s_obj.nombre}")
+        ventana_cuentas.geometry("450x600")
+        ventana_cuentas.configure(fg_color="#C9E2CD")
+        ventana_cuentas.attributes("-topmost", True)
+        
+        main_f = ctk.CTkFrame(ventana_cuentas, fg_color="white", corner_radius=15)
+        main_f.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        ctk.CTkLabel(main_f, text=f"DEUDORES - {s_obj.nombre.upper()}", font=("Inter", 16, "bold"), text_color="#1E293B").pack(pady=15)
+        
+        scroll = ctk.CTkScrollableFrame(main_f, fg_color="transparent")
+        scroll.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        deudores = []
+        for c in sistema_back.consumos.values():
+            if c.servicio_id == s_id and c.estado == "pendiente":
+                u = sistema_back.usuarios.get(c.usuario_id)
+                if u:
+                    deudores.append((u.Username, u.direccion, c.total(sistema_back)))
+        
+        if not deudores:
+            ctk.CTkLabel(scroll, text="🎉 No hay deudas pendientes", font=("Inter", 12), text_color="#166534").pack(pady=20)
+        else:
+            for nombre, direccion, total in deudores:
+                item = ctk.CTkFrame(scroll, fg_color="#F8FAFC", corner_radius=10, border_width=1, border_color="#E2E8F0")
+                item.pack(fill="x", pady=5)
+                
+                info_f = ctk.CTkFrame(item, fg_color="transparent")
+                info_f.pack(side="left", padx=10, pady=10, fill="x", expand=True)
+                
+                ctk.CTkLabel(info_f, text=nombre, font=("Inter", 12, "bold"), text_color="#1E293B", anchor="w").pack(fill="x")
+                ctk.CTkLabel(info_f, text=f"Casa/Dpto: {direccion}", font=("Inter", 10), text_color="#64748B", anchor="w").pack(fill="x")
+                
+                ctk.CTkLabel(item, text=f"${total:.2f}", font=("Inter", 14, "bold"), text_color="#E11D48").pack(side="right", padx=15)
+
     cargar_servicios()
 
     def abrir_form_servicio(es_editar=False):
-        if es_editar and not servicio_seleccionado.get():
-            mostrar_error("Selecciona un servicio para editar.")
-            return
-
         form = ctk.CTkToplevel(ventana_servicios)
-        form.title("Editar Servicio" if es_editar else "Nuevo Servicio")
-        form.geometry("300x350")
+        form.title("Formulario")
+        form.geometry("350x450")
         form.configure(fg_color=Color_fondo)
         form.attributes("-topmost", True)
-
-        ctk.CTkLabel(form, text="Editar Servicio" if es_editar else "Nuevo Servicio", font=("Arial", 16, "bold")).pack(pady=10)
-
-        ent_nombre = ctk.CTkEntry(form, placeholder_text="Nombre (Ej. Agua)")
-        ent_nombre.pack(pady=10)
-
-        tipo_var = ctk.StringVar(value="medido")
-        ctk.CTkRadioButton(form, text="Medido (por unidad)", variable=tipo_var, value="medido").pack(pady=5)
-        ctk.CTkRadioButton(form, text="Cuota Fija", variable=tipo_var, value="fijo").pack(pady=5)
-
-        ent_tarifa = ctk.CTkEntry(form, placeholder_text="Tarifa ($)")
-        ent_tarifa.pack(pady=10)
+        
+        ctk.CTkLabel(form, text="DATOS DEL SERVICIO", font=("Inter", 15, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
+        ent_n = ctk.CTkEntry(form, placeholder_text="Nombre", width=250)
+        ent_n.pack(pady=10)
+        
+        tipo_v = ctk.StringVar(value="medido")
+        ctk.CTkRadioButton(form, text="Medido", variable=tipo_v, value="medido", text_color=Color_texto_oscuro).pack()
+        ctk.CTkRadioButton(form, text="Fijo", variable=tipo_v, value="fijo", text_color=Color_texto_oscuro).pack(pady=5)
+        
+        ent_t = ctk.CTkEntry(form, placeholder_text="Tarifa", width=250)
+        ent_t.pack(pady=10)
 
         if es_editar:
-            s_edit = sistema_back.servicios[servicio_seleccionado.get()]
-            ent_nombre.insert(0, s_edit.nombre)
-            tipo_var.set(s_edit.tipo)
-            ent_tarifa.insert(0, str(s_edit.tarifa))
+            s = sistema_back.servicios[servicio_seleccionado.get()]
+            ent_n.insert(0, s.nombre); tipo_v.set(s.tipo); ent_t.insert(0, str(s.tarifa))
 
-        def guardar():
-            nombre = ent_nombre.get()
-            tipo = tipo_var.get()
-            tarifa = ent_tarifa.get()
-            if nombre and tarifa:
-                try:
-                    float(tarifa)
-                    if es_editar:
-                        sistema_back.editar_servicio(servicio_seleccionado.get(), nombre, tipo, tarifa)
-                    else:
-                        sistema_back.crear_servicio(nombre, tipo, tarifa)
-                    cargar_servicios()
-                    form.destroy()
-                except:
-                    mostrar_error("Tarifa debe ser número")
+        ruta_img_seleccionada = ctk.StringVar(value="")
+        def seleccionar_foto_servicio():
+            archivo = filedialog.askopenfilename(filetypes=[("Imágenes", "*.png *.jpg *.jpeg")])
+            if archivo:
+                ruta_img_seleccionada.set(archivo)
+                lbl_img_path.configure(text=os.path.basename(archivo))
 
-        ctk.CTkButton(form, text="Guardar", fg_color=Color_boton_oscuro, command=guardar).pack(pady=20)
+        btn_foto = ctk.CTkButton(form, text="📷 Cargar Icono", fg_color="gray", command=seleccionar_foto_servicio)
+        btn_foto.pack(pady=5)
+        lbl_img_path = ctk.CTkLabel(form, text="Sin imagen seleccionada", font=("Inter", 10), text_color="gray")
+        lbl_img_path.pack()
 
-    ctk.CTkButton(panel_derecho, text="+ servicios", fg_color="#196D39", font=("Arial", 14, "bold"),
-                  corner_radius=10, height=40, command=lambda: abrir_form_servicio(False)).pack(pady=(20, 10), padx=20, fill="x")
+        def save():
+            try:
+                nombre = ent_n.get()
+                tar = float(ent_t.get())
+                if not nombre: return
+                
+                # Guardar imagen si se seleccionó
+                if ruta_img_seleccionada.get():
+                    base_dir = os.path.dirname(os.path.abspath(__file__))
+                    carpeta_iconos = os.path.join(base_dir, "iconos")
+                    os.makedirs(carpeta_iconos, exist_ok=True)
+                    destino = os.path.join(carpeta_iconos, f"icono_{nombre.lower()}.png")
+                    shutil.copy(ruta_img_seleccionada.get(), destino)
 
-    botones_gestion_frame = ctk.CTkFrame(panel_derecho, fg_color="transparent")
-    botones_gestion_frame.pack(fill="x", padx=20, pady=10)
+                if es_editar: 
+                    sistema_back.editar_servicio(servicio_seleccionado.get(), nombre, tipo_v.get(), tar)
+                else: 
+                    sistema_back.crear_servicio(nombre, tipo_v.get(), tar)
+                
+                cargar_servicios()
+                cargar_iconos_header()
+                form.destroy()
+            except Exception as e: 
+                mostrar_error(f"Error: {e}")
+        
+        ctk.CTkButton(form, text="GUARDAR", fg_color=Color_boton_oscuro, command=save).pack(pady=25)
 
-    ctk.CTkButton(botones_gestion_frame, text="Editar", fg_color="#9CA3AF", font=("Arial", 14, "bold"),
-                  text_color="white", corner_radius=10, height=35,
-                  command=lambda: abrir_form_servicio(True)).pack(side="left", expand=True, padx=(0, 5), fill="x")
-
-    mov_seleccionado = ctk.StringVar(value="")
-
-    def marcar_como_pagado():
-        c_id = mov_seleccionado.get()
-        if c_id:
-            sistema_back.marcar_consumo_pagado(c_id)
-            cargar_movimientos()
-            mostrar_exito()
-        else:
-            mostrar_error("Selecciona un movimiento.")
-
-    def eliminar_movimiento():
-        c_id = mov_seleccionado.get()
-        if c_id:
-            sistema_back.eliminar_consumo(c_id)
-            cargar_movimientos()
-            mostrar_exito()
-        else:
-            mostrar_error("Selecciona un movimiento.")
-
-    ctk.CTkButton(botones_gestion_frame, text="Pagado", fg_color="#3B82F6", font=("Arial", 14, "bold"),
-                  text_color="white", corner_radius=10, height=35, command=marcar_como_pagado, width=100).pack(side="left", expand=True, padx=5, fill="x")
-    ctk.CTkButton(botones_gestion_frame, text="Eliminar", fg_color="#EF4444", font=("Arial", 14, "bold"),
-                  text_color="white", corner_radius=10, height=35, command=eliminar_movimiento, width=100).pack(side="right", expand=True, padx=(0, 5), fill="x")
-
-    mov_frame = ctk.CTkFrame(panel_derecho, fg_color="#DCFCE7", corner_radius=15)
-    mov_frame.pack(fill="both", expand=True, padx=20, pady=(10, 20))
-    ctk.CTkLabel(mov_frame, text="movimientos", font=("Arial", 14, "bold"), text_color="black").pack(pady=10)
-
-    scroll_mov = ctk.CTkScrollableFrame(mov_frame, fg_color="transparent")
-    scroll_mov.pack(fill="both", expand=True, padx=5, pady=5)
-
-    def cargar_movimientos(*args):
-        # Muestra el historial de consumos registrados, aplicando el filtro de Pagados/Pendientes
-        for widget in scroll_mov.winfo_children():
-            widget.destroy()
-
-        filtro_mov = filtro_2.get()
-        movimientos = list(sistema_back.consumos.values())
-
-        if filtro_mov == "Mov: Pagados":
-            movimientos = [c for c in movimientos if c.estado == "pagado"]
-        elif filtro_mov == "Mov: Pendientes":
-            movimientos = [c for c in movimientos if c.estado == "pendiente"]
-
-        for c in reversed(movimientos[-15:]):
-            nom_serv = sistema_back.servicios[c.servicio_id].nombre if c.servicio_id in sistema_back.servicios else "Servicio"
-            nom_user = sistema_back.usuarios[c.usuario_id].Username if c.usuario_id in sistema_back.usuarios else "Desconocido"
-            estado_texto = "✅" if c.estado == "pagado" else "⏳"
-            color_texto = "#9CA3AF" if c.estado == "pagado" else "#1F2937"
-
-            ctk.CTkRadioButton(scroll_mov,
-                               text=f"{estado_texto} {nom_serv} - {nom_user}: ${c.total(sistema_back):.2f}",
-                               variable=mov_seleccionado, value=c.idConsumo,
-                               font=("Arial", 12), text_color=color_texto).pack(pady=5, anchor="w")
-
-    filtro_2.configure(command=cargar_movimientos)
-    cargar_movimientos()
-
-    ctk.CTkButton(panel_derecho, text="", fg_color="#196D39", width=30, height=30, corner_radius=15, hover=False).pack(side="right", padx=10, pady=10)
 
 ##==========================
-# Ventana Registro Consumo
+# VENTANA REGISTRO DE CONSUMOS
 #===========================
 
 def abrir_registro_consumo(admin_obj):
-    # Ventana para capturar el consumo o la cuota de un inquilino
-    ventana_reg = ctk.CTkToplevel(ventana_principal)
-    ventana_reg.title("Registro Consumo")
-    ventana_reg.geometry("500x500")
+    # Ventana rediseñada para captura de consumos
+    ventana_reg = ctk.CTkToplevel()
+    ventana_reg.title("SAC - Registro de Consumo")
+    ventana_reg.geometry("600x800")
     ventana_reg.configure(fg_color=Color_fondo)
     ventana_reg.attributes("-topmost", True)
 
-    main_frame = ctk.CTkFrame(ventana_reg, fg_color="white", corner_radius=15)
-    main_frame.pack(fill="both", expand=True, padx=30, pady=30)
+    # Frame Principal (Card)
+    main_frame = ctk.CTkFrame(ventana_reg, fg_color="white", corner_radius=25)
+    main_frame.pack(fill="both", expand=True, padx=25, pady=25)
 
-    ctk.CTkLabel(main_frame, text="Registro de Consumo", font=("Arial", 18, "bold"), text_color=Color_texto_oscuro).pack(pady=10)
+    # --- HEADER ---
+    header = ctk.CTkFrame(main_frame, fg_color="transparent")
+    header.pack(fill="x", padx=30, pady=(20, 10))
+
+    icon_head = cargar_icono("icono_consumo.png")
+    if icon_head:
+        icon_head.configure(size=(50, 50))
+        ctk.CTkLabel(header, image=icon_head, text="").pack(side="left", padx=(0, 15))
+    else:
+        ctk.CTkLabel(header, text="📊", font=("Arial", 40)).pack(side="left", padx=(0, 15))
+
+    title_txt = ctk.CTkFrame(header, fg_color="transparent")
+    title_txt.pack(side="left")
+    ctk.CTkLabel(title_txt, text="REGISTRO DE CONSUMOS", font=("Inter", 22, "bold"), text_color="#1B4332").pack(anchor="w")
+    ctk.CTkLabel(title_txt, text="Gestión de servicios y cuotas", font=("Inter", 12), text_color="gray").pack(anchor="w")
+
+    # Separador
+    ctk.CTkFrame(main_frame, height=2, fg_color="#F1F5F9").pack(fill="x", padx=40, pady=10)
+
+    # --- DATOS DEL RESIDENTE ---
+    ctk.CTkLabel(main_frame, text="RESIDENTE Y PERIODO", font=("Inter", 13, "bold"), text_color="#475569").pack(anchor="w", padx=45, pady=(10, 5))
     
-    # Menú desplegable para seleccionar a qué residente cobrarle
+    row_top = ctk.CTkFrame(main_frame, fg_color="transparent")
+    row_top.pack(fill="x", padx=40)
+
     residentes = [f"{u.idUsuario} - {u.Username}" for u in sistema_back.usuarios.values() if u.tipoUsuario != "admin"]
-    combo_residente = ctk.CTkComboBox(main_frame, values=residentes if residentes else ["Sin residentes"], width=300)
-    combo_residente.set("Lista Residente")
-    combo_residente.pack(pady=10)
+    combo_residente = ctk.CTkComboBox(row_top, values=residentes if residentes else ["Sin residentes"], width=300, height=35)
+    combo_residente.set("Seleccionar Residente")
+    combo_residente.pack(side="left", padx=(0, 10))
 
-    ctk.CTkLabel(main_frame, text="Servicio:", font=("Arial", 14, "bold"), anchor="w", text_color="black").pack(fill="x", padx=40, pady=(10, 0))
+    from datetime import datetime
+    ent_fecha = ctk.CTkEntry(row_top, width=150, height=35, justify="center")
+    ent_fecha.insert(0, datetime.now().strftime("%Y-%m-%d"))
+    ent_fecha.pack(side="left")
 
-    servicios_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-    servicios_frame.pack(pady=10)
+    # --- SELECCIÓN DE SERVICIO (ICONOS) ---
+    ctk.CTkLabel(main_frame, text="SELECCIONAR SERVICIO", font=("Inter", 13, "bold"), text_color="#475569").pack(anchor="w", padx=45, pady=(15, 5))
+    
+    scroll_servs = ctk.CTkScrollableFrame(main_frame, fg_color="#F8FAFC", height=130, orientation="horizontal", corner_radius=15)
+    scroll_servs.pack(fill="x", padx=40)
 
     servicio_var = ctk.StringVar(value="")
+    serv_buttons = {}
 
-    colores = ["#A9C2F0", "#FFF4B0", "#D3C2A3", "#FFC1C1"]
-    idx = 0
-    todos_servicios = list(sistema_back.servicios.values())
+    def select_serv(sid):
+        servicio_var.set(sid)
+        for s_id, btn in serv_buttons.items():
+            if s_id == sid:
+                btn.configure(fg_color="#24A433", border_width=2, border_color="#24A433")
+            else:
+                btn.configure(fg_color="white", border_width=1, border_color="#E2E8F0")
+        on_servicio_select()
+        refrescar_lectura_anterior()
 
-    ent_anterior = ctk.CTkEntry(main_frame, placeholder_text="Lectura anterior", width=300)
-    ent_anterior.pack(pady=5)
+    for s in sistema_back.servicios.values():
+        f_btn = ctk.CTkFrame(scroll_servs, fg_color="white", corner_radius=12, width=110, height=90, border_width=1, border_color="#E2E8F0")
+        f_btn.pack(side="left", padx=5, pady=5)
+        f_btn.pack_propagate(False)
+        serv_buttons[s.idServicio] = f_btn
 
-    ent_actual = ctk.CTkEntry(main_frame, placeholder_text="Lectura Actual", width=300)
-    ent_actual.pack(pady=5)
+        icon_s = cargar_icono(f"icono_{s.nombre.lower()}.png")
+        if icon_s:
+            ctk.CTkLabel(f_btn, image=icon_s, text="").pack(pady=(10, 2))
+        else:
+            ctk.CTkLabel(f_btn, text="📦", font=("Arial", 20)).pack(pady=(10, 2))
+        
+        ctk.CTkLabel(f_btn, text=s.nombre[:12], font=("Inter", 11, "bold"), text_color="black").pack()
 
-    lbl_consumo = ctk.CTkLabel(main_frame, text="Consumo: 0", font=("Arial", 14, "bold"),
-                               text_color="white", fg_color="#89cd84", width=300, corner_radius=5)
-    lbl_consumo.pack(pady=5)
+        # Hacerlo clickable
+        f_btn.bind("<Button-1>", lambda e, sid=s.idServicio: select_serv(sid))
+        for child in f_btn.winfo_children():
+            child.bind("<Button-1>", lambda e, sid=s.idServicio: select_serv(sid))
+
+    # --- LECTURAS ---
+    lecturas_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+    lecturas_frame.pack(fill="x", padx=40, pady=15)
+
+    # Izquierda: Inputs
+    inputs_f = ctk.CTkFrame(lecturas_frame, fg_color="transparent")
+    inputs_f.pack(side="left", fill="both", expand=True)
+
+    ent_anterior = ctk.CTkEntry(inputs_f, placeholder_text="Lectura Anterior", height=40)
+    ent_anterior.pack(fill="x", pady=5)
+
+    ent_actual = ctk.CTkEntry(inputs_f, placeholder_text="Lectura Actual", height=40)
+    ent_actual.pack(fill="x", pady=5)
+
+    # Derecha: Resultado
+    res_f = ctk.CTkFrame(lecturas_frame, fg_color="#F0FDF4", corner_radius=15, width=180)
+    res_f.pack(side="right", padx=(20, 0), fill="y")
+    res_f.pack_propagate(False)
+
+    ctk.CTkLabel(res_f, text="CONSUMO", font=("Inter", 11, "bold"), text_color="#166534").pack(pady=(15, 0))
+    lbl_consumo = ctk.CTkLabel(res_f, text="0.00", font=("Inter", 28, "bold"), text_color="#1B4332")
+    lbl_consumo.pack(expand=True)
 
     def calcular_consumo(*args):
         try:
-            ant = float(ent_anterior.get())
-            act = float(ent_actual.get())
-            cons = act - ant
-            lbl_consumo.configure(text=f"Consumo: {cons}")
+            ant_val = ent_anterior.get()
+            act_val = ent_actual.get()
+            ant = float(ant_val) if ant_val else 0
+            act = float(act_val) if act_val else 0
+            cons = max(0, act - ant)
+            lbl_consumo.configure(text=f"{cons:.2f}")
         except:
-            lbl_consumo.configure(text="Consumo: 0")
+            lbl_consumo.configure(text="0.00")
+
+    def refrescar_lectura_anterior(*args):
+        try:
+            res_val = combo_residente.get()
+            if " - " in res_val:
+                res_id = res_val.split(" - ")[0]
+                serv_id = servicio_var.get()
+                if serv_id:
+                    ultima = sistema_back.obtener_ultima_lectura(res_id, serv_id)
+                    ent_anterior.delete(0, "end")
+                    ent_anterior.insert(0, f"{ultima:.2f}")
+                    calcular_consumo()
+        except Exception as e:
+            print(f"Error refrescar lectura: {e}")
+
+    # Forzar actualización al cambiar residente
+    combo_residente.configure(command=refrescar_lectura_anterior)
 
     def on_servicio_select():
-        # Si el servicio es de cuota fija, esconde las cajas de lectura y muestra el total directo
         s_id = servicio_var.get()
         if s_id in sistema_back.servicios:
             s = sistema_back.servicios[s_id]
             if s.tipo == "fijo":
                 ent_anterior.pack_forget()
                 ent_actual.pack_forget()
-                lbl_consumo.configure(text=f"Cuota Fija: ${s.tarifa}")
+                lbl_consumo.configure(text=f"${s.tarifa:.2f}")
             else:
-                ent_anterior.pack(pady=5, before=lbl_consumo)
-                ent_actual.pack(pady=5, before=lbl_consumo)
+                ent_anterior.pack(fill="x", pady=5)
+                ent_actual.pack(fill="x", pady=5)
                 calcular_consumo()
-
-    for s in todos_servicios:
-        btn_color = colores[idx % len(colores)]
-        idx += 1
-        btn = ctk.CTkRadioButton(servicios_frame, text=s.nombre, variable=servicio_var, value=s.idServicio,
-                                 fg_color=Color_boton_oscuro, font=("Arial", 14, "bold"), text_color="black",
-                                 command=on_servicio_select)
-        btn.pack(side="left", padx=10)
-
-    if not todos_servicios:
-        ctk.CTkLabel(servicios_frame, text="No hay servicios creados.", text_color="black").pack()
 
     ent_anterior.bind("<KeyRelease>", calcular_consumo)
     ent_actual.bind("<KeyRelease>", calcular_consumo)
 
-    from datetime import datetime
-    ent_fecha = ctk.CTkEntry(main_frame, placeholder_text="Fecha (YYYY-MM-DD)", width=300)
-    ent_fecha.insert(0, datetime.now().strftime("%Y-%m-%d"))
-    ent_fecha.pack(pady=5)
+    # --- BOTONES ---
+    btn_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+    btn_frame.pack(fill="x", side="bottom", pady=20, padx=40)
 
     def guardar_consumo():
         try:
             res_id = combo_residente.get().split(" - ")[0]
             serv_id = servicio_var.get()
-
             s = sistema_back.servicios.get(serv_id)
             if not s:
-                mostrar_error("Seleccione un servicio válido.")
+                mostrar_error("Seleccione un servicio.")
                 return
 
             if s.tipo == "fijo":
-                cons = 1.0 # Cantidad 1 para que al multiplicar por tarifa de el total
+                cons = 1.0
             else:
                 ant = float(ent_anterior.get())
                 act = float(ent_actual.get())
                 cons = act - ant
 
-            fecha = ent_fecha.get()
-
-            if serv_id and res_id and res_id not in ("Sin residentes", "Lista Residente"):
-                sistema_back.registrar_consumo(cons, res_id, serv_id, fecha)
+            if serv_id and res_id and res_id not in ("Sin residentes", "Seleccionar Residente"):
+                lect_actual = float(ent_actual.get() or 0) if s.tipo != "fijo" else 0
+                sistema_back.registrar_consumo(cons, res_id, serv_id, ent_fecha.get(), lect_actual)
+                mostrar_exito()
                 ventana_reg.destroy()
             else:
-                mostrar_error("Seleccione residente y servicio.")
+                mostrar_error("Datos incompletos.")
         except Exception as e:
-            mostrar_error("Verifique los datos ingresados.")
+            mostrar_error("Verifique lecturas.")
 
-    ctk.CTkButton(main_frame, text="Guardar", fg_color="#196D39", font=("Arial", 14, "bold"), command=guardar_consumo).pack(pady=20)
+    ctk.CTkButton(btn_frame, text="REGISTRAR CONSUMO", fg_color="#24A433", 
+                   height=45, font=("Inter", 15, "bold"), command=guardar_consumo).pack(fill="x")
+    
+    ctk.CTkButton(btn_frame, text="CANCELAR", fg_color="transparent", text_color="#8B0000", 
+                   command=ventana_reg.destroy).pack(fill="x", pady=(10, 0))
 
 ##==========================
-# Ventana Generar Recibo
+# VENTANA GENERAR RECIBO
 #===========================
 
 def abrir_generar_recibo(admin_obj):
-    # Ventana para generar recibos en base a los consumos pendientes de un inquilino
-    ventana_recibo = ctk.CTkToplevel(ventana_principal)
+    # Ventana rediseñada estilo premium
+    ventana_recibo = ctk.CTkToplevel()
     ventana_recibo.title("Generar Recibo")
-    ventana_recibo.geometry("500x400")
-    ventana_recibo.configure(fg_color="white")
+    ventana_recibo.geometry("600x750")
+    ventana_recibo.configure(fg_color=Color_fondo)
     ventana_recibo.attributes("-topmost", True)
 
-    main_frame = ctk.CTkFrame(ventana_recibo, fg_color="#F4FDF4", border_color="#196D39", border_width=3, corner_radius=15)
-    main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+    # Frame Principal
+    main_frame = ctk.CTkFrame(ventana_recibo, fg_color="#C9E2CD", corner_radius=20)
+    main_frame.pack(fill="both", expand=True, padx=25, pady=25)
 
-    title_bar = ctk.CTkFrame(main_frame, fg_color="#196D39", corner_radius=10, height=30)
-    title_bar.pack(fill="x")
-    ctk.CTkButton(title_bar, text="X", fg_color="white", text_color="#196D39", width=20, height=20,
-                  font=("Arial", 12, "bold"), command=ventana_recibo.destroy).pack(side="right", padx=5, pady=5)
+    # --- HEADER ---
+    header = ctk.CTkFrame(main_frame, fg_color="white", corner_radius=20, height=120)
+    header.pack(fill="x", padx=10, pady=10)
+    header.pack_propagate(False)
 
-    content_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-    content_frame.pack(fill="both", expand=True, padx=20, pady=10)
+    icon_rec = cargar_icono("icono_recibo.png")
+    if icon_rec:
+        icon_rec.configure(size=(50, 50))
+        ctk.CTkLabel(header, image=icon_rec, text="").pack(side="left", padx=25)
+        
+    else:
+        ctk.CTkLabel(header, text="📄", font=("Arial", 40)).pack(side="left", padx=25)
 
-    ent_periodo = ctk.CTkEntry(content_frame, placeholder_text="Fecha / Periodo",
-                               fg_color="#D1D5DB", text_color="black", border_width=0, justify="center")
-    ent_periodo.pack(fill="x", pady=(10, 20))
+    title_txt = ctk.CTkFrame(header, fg_color="transparent")
+    title_txt.pack(side="left", pady=25)
+    ctk.CTkLabel(title_txt, text="Generar Recibo", font=("Inter", 24, "bold"), text_color=Color_texto_oscuro).pack(anchor="w")
+    ctk.CTkLabel(title_txt, text="Seleccione el tipo de recibo y el residente", font=("Inter", 13), text_color=Color_texto_oscuro).pack(anchor="w")
 
-    botones_frame = ctk.CTkFrame(content_frame, fg_color="transparent")
-    botones_frame.pack(fill="x", pady=10)
+    btn_x = ctk.CTkButton(header, text="✕", fg_color=Color_boton_oscuro, text_color="#D0D0D0", width=30, height=30, 
+                          corner_radius=15, font=("Arial", 14, "bold"), command=ventana_recibo.destroy)
+    btn_x.place(relx=0.93, rely=0.3)
 
+    # --- CONTENIDO ---
+    content = ctk.CTkFrame(main_frame, fg_color="transparent")
+    content.pack(fill="both", expand=True, padx=30, pady=10)
+
+    # Periodo y Servicio
+    row_p = ctk.CTkFrame(content, fg_color="transparent")
+    row_p.pack(fill="x", pady=5)
+    
+    col_left = ctk.CTkFrame(row_p, fg_color="transparent")
+    col_left.pack(side="left", fill="both", expand=True, padx=(0, 5))
+    ctk.CTkLabel(col_left, text="📅 Fecha / Periodo", font=("Inter", 12, "bold"), text_color="#1F2937").pack(anchor="w")
+    
+    import locale
+    try: locale.setlocale(locale.LC_TIME, "es_ES")
+    except: pass
+    fecha_hoy = datetime.now().strftime("%d de %B de %Y")
+    
+    ent_periodo = ctk.CTkEntry(col_left, height=40, fg_color="#F9FAFB", border_color="#E5E7EB", 
+                               text_color="black", font=("Inter", 13))
+    ent_periodo.insert(0, fecha_hoy)
+    ent_periodo.pack(fill="x", pady=5)
+
+    col_right = ctk.CTkFrame(row_p, fg_color="transparent")
+    col_right.pack(side="left", fill="both", expand=True, padx=(5, 0))
+    ctk.CTkLabel(col_right, text="🛠️ Servicio", font=("Inter", 12, "bold"), text_color="#1F2937").pack(anchor="w")
+    
+    servs_vals = ["Todos los servicios"] + [s.nombre for s in sistema_back.servicios.values()]
+    combo_serv = ctk.CTkComboBox(col_right, values=servs_vals, height=40, fg_color="#F9FAFB")
+    combo_serv.set("Todos los servicios")
+    combo_serv.pack(fill="x", pady=5)
+
+    # Selección Tipo
     tipo_var = ctk.StringVar(value="individual")
-    residentes = [f"{u.idUsuario} - {u.Username}" for u in sistema_back.usuarios.values() if u.tipoUsuario != "admin"]
-    combo_residente = ctk.CTkComboBox(content_frame, values=residentes if residentes else ["Sin residentes"], width=300)
-    combo_residente.set("Seleccione Residente")
+    types_frame = ctk.CTkFrame(content, fg_color="transparent")
+    types_frame.pack(fill="x", pady=10)
 
-    def on_tipo_change():
-        if tipo_var.get() == "individual":
-            combo_residente.pack(pady=10)
+    def select_type(t):
+        tipo_var.set(t)
+        if t == "individual":
+            card_ind.configure(border_color="#14532D", border_width=2)
+            card_gen.configure(border_color="#E5E7EB", border_width=1)
+            combo_residente.pack(fill="x", pady=10)
+            lbl_res_tag.pack(anchor="w")
         else:
+            card_gen.configure(border_color="#14532D", border_width=2)
+            card_ind.configure(border_color="#E5E7EB", border_width=1)
             combo_residente.pack_forget()
+            lbl_res_tag.pack_forget()
 
-    btn_ind = ctk.CTkRadioButton(botones_frame, text="Individual", variable=tipo_var, value="individual",
-                                 font=("Arial", 16, "bold"), text_color="black", fg_color="#196D39", command=on_tipo_change)
-    btn_ind.pack(side="left", padx=(30, 20))
-    btn_gen = ctk.CTkRadioButton(botones_frame, text="General", variable=tipo_var, value="general",
-                                 font=("Arial", 16, "bold"), text_color="black", fg_color="#196D39", command=on_tipo_change)
-    btn_gen.pack(side="right", padx=(20, 30))
+    card_ind = ctk.CTkFrame(types_frame, fg_color="#F9FAFB", border_color="#14532D", border_width=2, height=80, corner_radius=12)
+    card_ind.pack(side="left", fill="both", expand=True, padx=(0, 10))
+    card_ind.pack_propagate(False)
+    card_ind.bind("<Button-1>", lambda e: select_type("individual"))
+    ctk.CTkLabel(card_ind, text="👤 Individual", font=("Inter", 15, "bold"), text_color="#1F2937").pack(side="left", padx=15)
+    ctk.CTkRadioButton(card_ind, text="", variable=tipo_var, value="individual", width=20, command=lambda: select_type("individual")).pack(side="right", padx=15)
 
-    on_tipo_change()
+    card_gen = ctk.CTkFrame(types_frame, fg_color="#F9FAFB", border_color="#E5E7EB", border_width=1, height=80, corner_radius=12)
+    card_gen.pack(side="left", fill="both", expand=True, padx=(10, 0))
+    card_gen.pack_propagate(False)
+    card_gen.bind("<Button-1>", lambda e: select_type("general"))
+    ctk.CTkLabel(card_gen, text="👥 General", font=("Inter", 15, "bold"), text_color="#1F2937").pack(side="left", padx=15)
+    ctk.CTkRadioButton(card_gen, text="", variable=tipo_var, value="general", width=20, command=lambda: select_type("general")).pack(side="right", padx=15)
 
-    ctk.CTkFrame(content_frame, height=2, fg_color="#196D39").pack(fill="x", pady=15)
+    # Residente
+    lbl_res_tag = ctk.CTkLabel(content, text="👤 Residente", font=("Inter", 14, "bold"), text_color="#1F2937")
+    lbl_res_tag.pack(anchor="w", pady=(20, 5))
+    
+    residentes = [f"{u.idUsuario} - {u.Username}" for u in sistema_back.usuarios.values() if u.tipoUsuario != "admin"]
+    combo_residente = ctk.CTkComboBox(content, values=residentes if residentes else ["Sin residentes"], height=45, fg_color="#F9FAFB")
+    combo_residente.set("Seleccione residente")
+    combo_residente.pack(fill="x", pady=10)
+
+    # Separador
+    ctk.CTkFrame(content, height=1, fg_color="#E5E7EB").pack(fill="x", pady=15)
+
+    # --- BOTONES DE ACCIÓN ---
+    actions = ctk.CTkFrame(content, fg_color="transparent")
+    actions.pack(fill="x")
 
     def obtener_pendientes():
-        # Busca en la base de datos todos los consumos (movimientos) que estén en estado "pendiente" para el inquilino
         pendientes = []
+        sel_serv = combo_serv.get()
+        
         if tipo_var.get() == "individual":
-            res_id = combo_residente.get().split(" - ")[0]
-            if res_id and res_id not in ("Sin residentes", "Seleccione Residente"):
-                pendientes = [c for c in sistema_back.consumos.values() if c.usuario_id == res_id and c.estado == "pendiente"]
+            res_val = combo_residente.get()
+            if " - " in res_val:
+                res_id = res_val.split(" - ")[0]
+                pendientes = [c for c in sistema_back.consumos.values() if str(c.usuario_id) == str(res_id) and c.estado == "pendiente"]
         else:
             pendientes = [c for c in sistema_back.consumos.values() if c.estado == "pendiente"]
+            
+        if sel_serv != "Todos los servicios":
+            pendientes = [c for c in pendientes if (sistema_back.servicios.get(c.servicio_id).nombre if sistema_back.servicios.get(c.servicio_id) else "") == sel_serv]
+            
         return pendientes
-
+    
+# ==========================
+# VENTANA VISTA PREVIA RECIBO
+# ==========================
     def mostrar_vista_previa():
-        # Abre un pequeño recuadro previsualizando el total del recibo
         pendientes = obtener_pendientes()
         total = sum(c.total(sistema_back) for c in pendientes)
 
         vp = ctk.CTkToplevel(ventana_recibo)
         vp.title("Vista Previa (Recibo)")
-        vp.geometry("400x300")
-        vp.configure(fg_color="white")
+        vp.geometry("600x650")
+        vp.configure(fg_color=Color_fondo)
         vp.attributes("-topmost", True)
 
-        mf = ctk.CTkFrame(vp, fg_color="#F4FDF4", border_color="#196D39", border_width=3, corner_radius=15)
-        mf.pack(fill="both", expand=True, padx=10, pady=10)
+        mf = ctk.CTkFrame(vp, fg_color="#C9E2CD", corner_radius=20)
+        mf.pack(fill="both", expand=True, padx=25, pady=25)
 
-        info_frame = ctk.CTkFrame(mf, fg_color="#E5E7EB", corner_radius=15)
-        info_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        # Header VP
+        h_vp = ctk.CTkFrame(mf, fg_color="White", corner_radius=20, height=100)
+        h_vp.pack(fill="x", padx=10, pady=10)
+        h_vp.pack_propagate(False)
+        ctk.CTkLabel(h_vp, text="Vista Previa del Recibo", font=("Inter", 20, "bold"), text_color=Color_texto_oscuro).pack(side="left", padx=25)
+        ctk.CTkButton(h_vp, text="✕", fg_color=Color_boton_oscuro, text_color="white", width=30, height=30, corner_radius=15, command=vp.destroy).pack(side="right", padx=20)
 
-        detalles = (f"Información Recibo\n\nPeriodo: {ent_periodo.get()}\n"
-                    f"Tipo: {tipo_var.get().capitalize()}\n\n"
-                    f"Consumos pendientes: {len(pendientes)}\n"
-                    f"Total estimado: ${total:.2f}")
+        # Ilustración central
+        img_pre = cargar_icono("icono_preview.png") # Asumiendo que existe o fallback
+        if img_pre:
+            ctk.CTkLabel(mf, image=img_pre, text="").pack(pady=20)
+            img_pre.configure(size=(100, 100)) 
+        else:
+            ctk.CTkLabel(mf, text="📄", font=("Arial", 60)).pack(pady=20)
 
-        ctk.CTkLabel(info_frame, text=detalles, font=("Arial", 14), text_color="black").pack(expand=True)
+        ctk.CTkLabel(mf, text="Información del Recibo", font=("Inter", 18, "bold"), text_color="#111827").pack()
+        ctk.CTkFrame(mf, height=2, width=150, fg_color="#14532D").pack(pady=5)
 
-    def imprimir():
-        imp = ctk.CTkToplevel(ventana_recibo)
-        imp.title("Imprimiendo")
-        imp.geometry("250x150")
-        imp.configure(fg_color="white")
-        imp.attributes("-topmost", True)
+        # Detalles grid
+        rows = [
+            ("📅 Fecha", ent_periodo.get()),
+            ("🛠️ Servicio", combo_serv.get()),
+            ("👤 Tipo de recibo", tipo_var.get().capitalize()),
+            ("📊 Consumos pendientes", str(len(pendientes))),
+            ("💰 Total estimado", f"${total:.2f}")
+        ]
 
-        mf = ctk.CTkFrame(imp, fg_color="#F4FDF4", border_color="#196D39", border_width=3, corner_radius=10)
-        mf.pack(fill="both", expand=True, padx=10, pady=10)
-        ctk.CTkLabel(mf, text="🖨️ Imprimiendo", font=("Arial", 16, "bold"), text_color="black").pack(pady=(20, 10))
-        ctk.CTkButton(mf, text="Aceptar", fg_color="white", border_color="#196D39",
-                      border_width=2, text_color="black", command=imp.destroy).pack()
+        for icon, val in rows:
+            r_frame = ctk.CTkFrame(mf, fg_color="transparent")
+            r_frame.pack(fill="x", padx=40, pady=8)
+            ctk.CTkLabel(r_frame, text=icon, font=("Inter", 14), text_color="#4B5563").pack(side="left")
+            ctk.CTkLabel(r_frame, text=val, font=("Inter", 14, "bold"), text_color="#111827").pack(side="right")
+
+        # Footer Alert
+        footer = ctk.CTkFrame(mf, fg_color="#F0FDF4", corner_radius=10)
+        footer.pack(fill="x", padx=30, pady=20)
+        ctk.CTkLabel(footer, text="ℹ️ Este es un cálculo estimado. El total puede variar al generar el recibo.", 
+                     font=("Inter", 12), text_color="#166534").pack(pady=10)
+
+    btn_vp = ctk.CTkButton(actions, text="👁️ Vista Previa", fg_color=Color_boton_oscuro, text_color="white", 
+                            border_color=Color_boton_oscuro, border_width=1, height=45, corner_radius=10, command=mostrar_vista_previa)
+    btn_vp.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
     def guardar():
-        # Suma los consumos pendientes, crea el recibo en base de datos y marca esos consumos como pagados
         pendientes = obtener_pendientes()
         total = sum(c.total(sistema_back) for c in pendientes)
-
         if total <= 0:
             mostrar_error("No hay consumos pendientes.")
             return
         
-        # Marcar los pendientes como pagados
-        for c in pendientes:
-            sistema_back.marcar_consumo_pagado(c.idConsumo)
+        c_ids = [c.idConsumo for c in pendientes]
+        res_val = combo_residente.get()
+        res_id = res_val.split(" - ")[0] if tipo_var.get() == "individual" else "varios"
+        
+        # Generar recibo en backend con todos los parámetros necesarios
+        r = sistema_back.generar_recibo(res_id, ent_periodo.get(), total, c_ids)
+        if r:
+            mostrar_exito("Recibo generado con éxito.")
+            ventana_recibo.destroy()
+        else:
+            mostrar_error("No se pudo generar el recibo.")
 
-        res_id = combo_residente.get().split(" - ")[0] if tipo_var.get() == "individual" else "varios"
-        sistema_back.generar_recibo(usuario_id=res_id, periodo=ent_periodo.get(), total=total)
-        mostrar_exito()
-        ventana_recibo.destroy()
-    ctk.CTkButton(content_frame, text="Vista Previa", fg_color="#196D39", font=("Arial", 14, "bold"), command=mostrar_vista_previa).pack(fill="x", pady=5)
-    ctk.CTkButton(content_frame, text="Guardar", fg_color="#196D39", font=("Arial", 14, "bold"), command=guardar).pack(fill="x", pady=5)
-    ctk.CTkButton(content_frame, text="Imprimir", fg_color="#196D39", font=("Arial", 14, "bold"), command=imprimir).pack(side="right", pady=10, padx=20)
+    btn_save = ctk.CTkButton(actions, text="💾 Guardar", fg_color=Color_boton_oscuro, text_color="white", border_color=Color_boton_oscuro,
+                              height=45, corner_radius=10, command=guardar)
+    btn_save.pack(side="left", fill="x", expand=True, padx=(5, 0))
+
+    btn_print = ctk.CTkButton(content, text="🖨️ Imprimir", fg_color=Color_boton_oscuro, text_color="white", 
+                               border_color=Color_boton_oscuro, border_width=1, height=45, corner_radius=10, command=lambda: print("Imprimiendo..."))
+    btn_print.pack(fill="x", pady=(15, 0))
 
 
 # ==========================
@@ -1232,13 +1462,278 @@ def abrir_reportes_usuario(usuario_obj):
     btn_enviar = ctk.CTkButton(footer, text="🚀 Enviar Reporte", fg_color=Color_boton_oscuro, text_color="white", 
                                hover_color="#14532D", width=150, command=enviar_reporte)
 
+
+# ===========================
+# VENTANA REALIZAR PAGOS (SIMULACIÓN)
+# ===========================
+def abrir_ventana_pagos(usuario_obj):
+    ventana_pagos = ctk.CTkToplevel()
+    ventana_pagos.title("Centro de Pagos - Simulación")
+    ventana_pagos.geometry("1000x700")
+    ventana_pagos.configure(fg_color=Color_fondo) 
+    ventana_pagos.attributes("-topmost", True)
+
+    
+    # Header Frame (Barra superior oscura como en la imagen)
+    header_frame = ctk.CTkFrame(ventana_pagos, fg_color="#BCDFC2", height=80, corner_radius=0)
+    header_frame.pack(fill="x", side="top")
+    header_frame.pack_propagate(False)
+
+    # Info de pago en el header
+    pago_info = usuario_obj.obtener_informacion_pago(sistema_back)
+    # Simulación de días para el diseño
+    dias_vence = "5 DÍAS" if "pendiente" in pago_info["monto"].lower() or pago_info["monto"] != "$0.00" else "0 DÍAS"
+    fecha_vence = datetime.now().strftime("%d %b %Y").upper()
+
+    header_content = ctk.CTkFrame(header_frame, fg_color="transparent")
+    header_content.pack(expand=True)
+
+    global _img_pago_ref # Referencia global para evitar recolección de basura
+    _img_pago_ref = None
+
+    # Label del logo
+    lbl_logo_header = ctk.CTkLabel(header_content, text="🏢", font=("Arial", 30))
+    lbl_logo_header.pack(side="left", padx=10)
+
+    # Cargar automáticamente el icono desde la carpeta "iconos"
+    try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        ruta_logo = os.path.join(base_dir, "iconos", "icono_pagos.png")
+
+        if os.path.exists(ruta_logo):
+            img_edif = Image.open(ruta_logo)
+            _img_pago_ref = ctk.CTkImage(img_edif, size=(50, 50))
+            lbl_logo_header.configure(image=_img_pago_ref, text="")
+
+    except Exception as e:
+        print(f"Error cargando icono del header: {e}")
+
+    lbl_info_pago = ctk.CTkLabel(header_content, 
+                                 text=f"SIGUIENTE PAGO: {pago_info['monto']} | VENCE EN {dias_vence} ({fecha_vence})",
+                                 font=("Inter", 16, "bold"), text_color=Color_texto_oscuro)
+    lbl_info_pago.pack(side="left", padx=20)
+
+    def realizar_pago_click():
+        if not metodo_seleccionado.get():
+            messagebox.showwarning("Atención", "Seleccione una forma de pago")
+            return
+            
+        serv_ids = [cid for cid, var in servicios_vars.items() if var.get()]
+        if not serv_ids:
+            messagebox.showwarning("Atención", "No ha seleccionado ningún servicio para pagar")
+            return
+            
+        # Procesar pago de los servicios seleccionados
+        for cid in serv_ids:
+            sistema_back.marcar_consumo_pagado(cid)
+            
+        # Verificar si los recibos ahora están totalmente pagados
+        # (Si todos los consumos de un recibo están pagados, el recibo se marca como pagado)
+        for r in sistema_back.recibos.values():
+            if r.estado == "pendiente":
+                if all(c.estado == "pagado" for c in r.consumos):
+                    r.estado = "pagado"
+        
+        sistema_back.guardar_recibos_csv()
+        sistema_back.guardar_consumos_csv()
+        
+        messagebox.showinfo("Éxito", f"Se han pagado {len(serv_ids)} servicio(s) correctamente")
+        ventana_pagos.destroy()
+        abrir_ventana_pagos(usuario_obj)
+
+    btn_pago_ahora = ctk.CTkButton(header_content, text="💸 REALIZAR PAGO AHORA", 
+                                   fg_color="#E5E7EB", text_color=Color_texto_oscuro,
+                                   font=("Inter", 14, "bold"), height=40,
+                                   hover_color="#D1D5DB", command=realizar_pago_click)
+    btn_pago_ahora.pack(side="left", padx=10)
+
+    # Botón cerrar
+    btn_cerrar = ctk.CTkButton(header_frame, text="✕", fg_color="transparent", text_color=Color_texto_oscuro, 
+                               width=40, height=40, font=("Arial", 18, "bold"), 
+                               hover_color="#A9C6AE", command=ventana_pagos.destroy)
+    btn_cerrar.place(relx=0.97, rely=0.5, anchor="center")
+
+    # Main Scrollable Area
+    main_scroll = ctk.CTkScrollableFrame(ventana_pagos, fg_color="transparent")
+    main_scroll.pack(fill="both", expand=True, padx=20, pady=20)
+
+    # Mid section split in two
+    mid_frame = ctk.CTkFrame(main_scroll, fg_color="transparent")
+    mid_frame.pack(fill="x", pady=(0, 20))
+    mid_frame.grid_columnconfigure(0, weight=1)
+    mid_frame.grid_columnconfigure(1, weight=1)
+
+    # --- LEFT: RESUMEN DETALLADO ---
+    resumen_frame = ctk.CTkFrame(mid_frame, fg_color="white", corner_radius=15, border_width=1, border_color="#D1D5DB")
+    resumen_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+
+    ctk.CTkLabel(resumen_frame, text="RESUMEN DETALLADO", font=("Inter", 18, "bold"), text_color="#111827").pack(anchor="w", padx=20, pady=(20, 5))
+    
+    # Selección individual de servicios
+    servicios_scroll = ctk.CTkScrollableFrame(resumen_frame, fg_color="#F8FAFC", height=300, corner_radius=10, border_width=1, border_color="#E2E8F0")
+    servicios_scroll.pack(fill="both", expand=True, padx=20, pady=10)
+    
+    servicios_vars = {} # {id_consumo: ctk.BooleanVar}
+    
+    def on_service_toggle():
+        actualizar_total_pago()
+
+    def actualizar_total_pago():
+        total = 0
+        for c_id, var in servicios_vars.items():
+            if var.get():
+                c_obj = sistema_back.consumos.get(c_id)
+                if c_obj: total += c_obj.total(sistema_back)
+        lbl_info_pago.configure(text=f"MONTO SELECCIONADO: ${total:.2f} | VENCE EN {dias_vence} ({fecha_vence})")
+
+    mis_recs = [r for r in sistema_back.recibos.values() if str(getattr(r.usuario, 'idUsuario', r.usuario)) == str(usuario_obj.idUsuario)]
+    pendientes = [r for r in mis_recs if r.estado == "pendiente"]
+
+    if not pendientes:
+        ctk.CTkLabel(servicios_scroll, text="No hay servicios pendientes", font=("Inter", 12), text_color="gray").pack(pady=20)
+    else:
+        for r in pendientes:
+            # Header del Recibo (para separar visualmente)
+            r_head = ctk.CTkFrame(servicios_scroll, fg_color="#E2E8F0", corner_radius=5)
+            r_head.pack(fill="x", pady=(10, 5), padx=5)
+            ctk.CTkLabel(r_head, text=f"RECIBO #{r.idRecibo} - {r.periodo.upper()}", font=("Inter", 11, "bold"), text_color="#475569").pack(padx=10, pady=2)
+            
+            for c in r.consumos:
+                if c.estado != "pendiente": continue
+                
+                serv_obj = sistema_back.servicios.get(c.servicio_id)
+                nom = serv_obj.nombre if serv_obj else "Servicio"
+                monto = c.total(sistema_back)
+                
+                row = ctk.CTkFrame(servicios_scroll, fg_color="white", corner_radius=8, border_width=1, border_color="#F1F5F9")
+                row.pack(fill="x", pady=2, padx=5)
+                
+                var = ctk.BooleanVar(value=False)
+                servicios_vars[c.idConsumo] = var
+                
+                cb = ctk.CTkCheckBox(row, text="", variable=var, width=20, command=on_service_toggle, fg_color="#1E293B")
+                cb.pack(side="left", padx=10)
+                
+                # Icono
+                icon_f = f"icono_{nom.lower()}.png"
+                img_ctk = cargar_icono(icon_f)
+                if img_ctk:
+                    ctk.CTkLabel(row, image=img_ctk, text="").pack(side="left", padx=5)
+                else:
+                    emojis = {"Agua": "💧", "Luz": "💡", "Gas": "🔥", "Seguridad": "🛡️", "Mantenimiento": "🛠️"}
+                    ctk.CTkLabel(row, text=emojis.get(nom, "📄"), font=("Arial", 16)).pack(side="left", padx=5)
+                
+                ctk.CTkLabel(row, text=nom, font=("Inter", 13, "bold"), text_color="#1E293B").pack(side="left", padx=5)
+                ctk.CTkLabel(row, text=f"${monto:.2f}", font=("Inter", 13, "bold"), text_color="#111827").pack(side="right", padx=15)
+
+    actualizar_total_pago()
+
+    # --- RIGHT: MÉTODOS DE PAGO ---
+    metodos_frame = ctk.CTkFrame(mid_frame, fg_color="white", corner_radius=15, border_width=1, border_color="#D1D5DB")
+    metodos_frame.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
+
+    ctk.CTkLabel(metodos_frame, text="MÉTODOS DE PAGO Y GESTIÓN", font=("Inter", 18, "bold"), text_color="#111827").pack(anchor="w", padx=20, pady=(20, 5))
+    ctk.CTkLabel(metodos_frame, text="SELECCIONAR MODO DE PAGO", font=("Inter", 12, "bold"), text_color="gray").pack(anchor="w", padx=20)
+
+    metodo_seleccionado = ctk.StringVar(value="")
+
+    def crear_opcion_pago(parent, icon_char, title, sub, val, color_base):
+        f = ctk.CTkFrame(parent, fg_color="white", corner_radius=12, border_width=2, border_color="#E5E7EB", height=80)
+        f.pack(fill="x", padx=20, pady=10)
+        f.pack_propagate(False)
+
+        rb = ctk.CTkRadioButton(f, text="", variable=metodo_seleccionado, value=val, width=20)
+        rb.place(x=15, rely=0.5, anchor="w")
+
+        # El diseño de la imagen tiene un cuadro de color con el icono
+        icon_box = ctk.CTkFrame(f, fg_color=color_base, width=50, height=50, corner_radius=8)
+        icon_box.place(x=50, rely=0.5, anchor="w")
+        icon_box.pack_propagate(False)
+        ctk.CTkLabel(icon_box, text=icon_char, font=("Arial", 24), text_color="white").pack(expand=True)
+
+        txt_f = ctk.CTkFrame(f, fg_color="transparent")
+        txt_f.place(x=110, rely=0.5, anchor="w")
+        ctk.CTkLabel(txt_f, text=title, font=("Inter", 14, "bold"), text_color="#111827").pack(anchor="w")
+        ctk.CTkLabel(txt_f, text=sub, font=("Inter", 11), text_color="gray").pack(anchor="w")
+
+        # Hacer que toda la celda sea clickable
+        def on_click(e):
+            metodo_seleccionado.set(val)
+        
+        f.bind("<Button-1>", on_click)
+        for child in f.winfo_children():
+            child.bind("<Button-1>", on_click)
+
+    crear_opcion_pago(metodos_frame, "💳", "Tarjeta Bancaria (Visa/MC)", "Rápido y Seguro", "tarjeta", "#1A365D")
+    crear_opcion_pago(metodos_frame, "🏦", "Transferencia Bancaria", "Detalles de Cuenta", "transfer", "#2D5A27")
+    crear_opcion_pago(metodos_frame, "🌐", "Pago en Línea", "Portal Seguro", "online", "#1E3A8A")
+
+    # --- BOTTOM: HISTORIAL DE CONSUMOS ---
+    historial_frame = ctk.CTkFrame(main_scroll, fg_color="white", corner_radius=15, border_width=1, border_color="#D1D5DB")
+    historial_frame.pack(fill="both", expand=True, pady=10)
+
+    header_historial = ctk.CTkFrame(historial_frame, fg_color="transparent")
+    header_historial.pack(fill="x", padx=20, pady=15)
+
+    ctk.CTkLabel(header_historial, text="HISTORIAL DE CONSUMOS", font=("Inter", 18, "bold"), text_color="#111827").pack(side="left")
+    
+    # Filtro por servicio
+    servicios_unicos = ["Todos"] + [s.nombre for s in sistema_back.servicios.values()]
+    combo_filtro_serv = ctk.CTkComboBox(header_historial, values=servicios_unicos, width=180)
+    combo_filtro_serv.set("Todos")
+    combo_filtro_serv.pack(side="right", padx=10)
+    ctk.CTkLabel(header_historial, text="Filtrar por servicio:", font=("Inter", 12), text_color="gray").pack(side="right")
+
+    # Tabla de consumos
+    table_container = ctk.CTkFrame(historial_frame, fg_color="transparent")
+    table_container.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+
+    # Header de tabla
+    table_head = ctk.CTkFrame(table_container, fg_color="#F9FAFB", height=40)
+    table_head.pack(fill="x")
+    cols = ["FECHA", "SERVICIO", "CANTIDAD", "MONTO", "ESTADO"]
+    for i, col in enumerate(cols):
+        lbl = ctk.CTkLabel(table_head, text=col, font=("Inter", 11, "bold"), text_color="#4B5563", width=150 if i < 2 else 100)
+        lbl.pack(side="left", padx=10, expand=True)
+
+    scroll_table = ctk.CTkScrollableFrame(table_container, fg_color="transparent", height=250)
+    scroll_table.pack(fill="both", expand=True)
+
+    def cargar_tabla_consumos(*args):
+        for w in scroll_table.winfo_children():
+            w.destroy()
+        
+        filtro = combo_filtro_serv.get()
+        mis_consumos = [c for c in sistema_back.consumos.values() if str(c.usuario_id) == str(usuario_obj.idUsuario)]
+        
+        for c in reversed(mis_consumos):
+            serv = sistema_back.servicios.get(c.servicio_id)
+            nom_serv = serv.nombre if serv else "Desconocido"
+            
+            if filtro != "Todos" and nom_serv != filtro:
+                continue
+
+            row = ctk.CTkFrame(scroll_table, fg_color="transparent", height=40)
+            row.pack(fill="x", pady=2)
+            
+            ctk.CTkLabel(row, text=c.fecha, font=("Inter", 11), width=150).pack(side="left", padx=10, expand=True)
+            ctk.CTkLabel(row, text=nom_serv, font=("Inter", 11), width=150).pack(side="left", padx=10, expand=True)
+            ctk.CTkLabel(row, text=f"{c.cantidad}", font=("Inter", 11), width=100).pack(side="left", padx=10, expand=True)
+            ctk.CTkLabel(row, text=f"${c.total(sistema_back):.2f}", font=("Inter", 11, "bold"), width=100).pack(side="left", padx=10, expand=True)
+            
+            est_color = "#059669" if c.estado == "pagado" else "#DC2626"
+            ctk.CTkLabel(row, text=c.estado.upper(), font=("Inter", 10, "bold"), text_color=est_color, width=100).pack(side="left", padx=10, expand=True)
+
+    combo_filtro_serv.configure(command=cargar_tabla_consumos)
+    cargar_tabla_consumos()
+
 # ===========================
 # VENTANA MIS RECIBOS
 # ===========================
 def abrir_mis_recibos(usuario_obj):
     ventana_recibos = ctk.CTkToplevel()
     ventana_recibos.title("Mis Recibos")
-    ventana_recibos.geometry("1100x750")
+    ventana_recibos.geometry("1000x700")
     ventana_recibos.configure(fg_color=Color_fondo)
     ventana_recibos.attributes("-topmost", True)
 
@@ -1330,9 +1825,9 @@ def abrir_mis_recibos(usuario_obj):
     }
     
     meses_map = {
-        "Enero": "01", "Febrero": "02", "Marzo": "03", "Abril": "04",
-        "Mayo": "05", "Junio": "06", "Julio": "07", "Agosto": "08",
-        "Septiembre": "09", "Octubre": "10", "Noviembre": "11", "Diciembre": "12"
+        "Enero": "enero", "Febrero": "febrero", "Marzo": "marzo", "Abril": "abril",
+        "Mayo": "mayo", "Junio": "junio", "Julio": "julio", "Agosto": "agosto",
+        "Septiembre": "septiembre", "Octubre": "octubre", "Noviembre": "noviembre", "Diciembre": "diciembre"
     }
 
     filas = []
@@ -1345,11 +1840,18 @@ def abrir_mis_recibos(usuario_obj):
         txt_preview.configure(state="normal")
         txt_preview.delete("1.0", "end")
         
+        serv_names = []
+        for c in rec.consumos:
+            s_obj = sistema_back.servicios.get(c.servicio_id)
+            if s_obj: serv_names.append(s_obj.nombre)
+        main_serv = ", ".join(list(set(serv_names))) if serv_names else "Varios"
+
         content = f"\n"
         content += f"      {'CONDOMINIO SAC':^40}\n"
         content += f"      {'='*30}\n\n"
         content += f"      Número del Recibo: {rec.idRecibo}\n"
-        content += f"      Periodo: {rec.periodo}\n"
+        content += f"      Fecha: {rec.periodo}\n"
+        content += f"      Servicio: {main_serv}\n"
         content += f"      Usuario: {usuario_obj.nombre_completo}\n\n"
         content += f"      {'Servicio':<20} {'Total':>10}\n"
         content += f"      {'-'*31}\n"
@@ -1381,7 +1883,7 @@ def abrir_mis_recibos(usuario_obj):
         mis_recs = [r for r in sistema_back.recibos.values() if str(getattr(r.usuario, 'idUsuario', r.usuario)) == str(usuario_obj.idUsuario)]
         
         for r in mis_recs:
-            if sel_mes != "Todos" and f"-{sel_mes}" not in r.periodo: continue
+            if sel_mes != "Todos" and sel_mes.lower() not in r.periodo.lower(): continue
             if sel_anio != "Todos" and sel_anio not in r.periodo: continue
             if sel_stat != "Todos" and r.estado != sel_stat: continue
             
@@ -1774,38 +2276,79 @@ def abrir_gestion_residentes(admin_obj):
     def ver_detalles_usuario(idUsuario):
         nonlocal ventana_detalles
 
-        if (
-            ventana_detalles is not None
-            and ventana_detalles.winfo_exists()
-        ):
+        if (ventana_detalles is not None and ventana_detalles.winfo_exists()):
             ventana_detalles.destroy()
 
         if idUsuario in sistema_back.usuarios:
-
             user = sistema_back.usuarios[idUsuario]
 
             ventana_detalles = ctk.CTkToplevel()
-            ventana_detalles.title(f"Detalles de {user.Username}")
-            ventana_detalles.geometry("400x400")
-            
-            ventana_detalles.lift()
+            ventana_detalles.title(f"Ficha - {user.Username}")
+            ventana_detalles.geometry("550x650")
+            ventana_detalles.configure(fg_color="#F8FAFC")
             ventana_detalles.attributes("-topmost", True)
-            ventana_detalles.after(100, lambda: ventana_detalles.attributes("-topmost", False))
 
-            ctk.CTkLabel(ventana_detalles, text="FICHA DEL RESIDENTE", font=("Arial", 18, "bold")).pack(pady=20)
-            info_texto = f"""
-                        ID Usuario: {user.idUsuario}
-                        Apodo: {user.Username}
-                        ----------------------------------
-                        Nombre Real: {getattr(user, 'nombre_completo', 'No registrado')}
-                        Dirección: {getattr(user, 'direccion', 'No registrada')}
-                        Teléfono: {getattr(user, 'telefono', 'No registrado')}
-                        ----------------------------------
-                        Estado: {user.estado}
-                        Tipo: {user.tipoUsuario}"""
+            # --- Main Card ---
+            mf = ctk.CTkFrame(ventana_detalles, fg_color="white", corner_radius=20)
+            mf.pack(fill="both", expand=True, padx=30, pady=30)
 
-            ctk.CTkLabel(ventana_detalles, text=info_texto, justify="left", font=("Arial", 13)).pack(pady=10, padx=20)
-            ctk.CTkButton(ventana_detalles, text="Cerrar", command=ventana_detalles.destroy).pack(pady=20)
+            # --- HEADER ---
+            header = ctk.CTkFrame(mf, fg_color="transparent")
+            header.pack(fill="x", padx=20, pady=20)
+            
+            icon_box = ctk.CTkFrame(header, fg_color="#14532D", width=70, height=70, corner_radius=35)
+            icon_box.pack(side="left", padx=(0, 15))
+            icon_box.pack_propagate(False)
+            ctk.CTkLabel(icon_box, text="👤", font=("Arial", 35), text_color="white").pack(expand=True)
+            
+            title_f = ctk.CTkFrame(header, fg_color="transparent")
+            title_f.pack(side="left", pady=5)
+            ctk.CTkLabel(title_f, text="Ficha del Residente", font=("Inter", 24, "bold"), text_color="#14532D").pack(anchor="w")
+            ctk.CTkLabel(title_f, text="Información detallada del residente", font=("Inter", 13), text_color="#64748B").pack(anchor="w")
+
+            # --- INFO CARD ---
+            info_card = ctk.CTkFrame(mf, fg_color="white", border_color="#E2E8F0", border_width=1, corner_radius=15)
+            info_card.pack(fill="both", expand=True, padx=20, pady=10)
+
+            def create_info_row(parent, icon_char, label, value, is_badge=False):
+                row = ctk.CTkFrame(parent, fg_color="transparent")
+                row.pack(fill="x", padx=25, pady=10)
+                
+                ctk.CTkLabel(row, text=icon_char, font=("Arial", 18), text_color="#14532D", width=30).pack(side="left")
+                ctk.CTkLabel(row, text=label, font=("Inter", 14, "bold"), text_color="#1F2937").pack(side="left", padx=10)
+                
+                if is_badge:
+                    b_color = "#DCFCE7" if value.lower() == "activo" else "#FEE2E2"
+                    t_color = "#166534" if value.lower() == "activo" else "#991B1B"
+                    badge = ctk.CTkFrame(row, fg_color=b_color, corner_radius=8)
+                    badge.pack(side="right")
+                    ctk.CTkLabel(badge, text=value.capitalize(), font=("Inter", 13, "bold"), text_color=t_color).pack(padx=12, pady=4)
+                else:
+                    ctk.CTkLabel(row, text=value, font=("Inter", 14), text_color="#374151").pack(side="right")
+
+            create_info_row(info_card, "👥", "ID Usuario:", str(user.idUsuario))
+            create_info_row(info_card, "👤", "Apodo:", user.Username)
+            ctk.CTkFrame(info_card, height=1, fg_color="#F1F5F9").pack(fill="x", padx=20, pady=5)
+            
+            create_info_row(info_card, "📝", "Nombre Real:", getattr(user, 'nombre_completo', 'No registrado'))
+            create_info_row(info_card, "📍", "Dirección:", getattr(user, 'direccion', 'No registrada'))
+            create_info_row(info_card, "📞", "Teléfono:", getattr(user, 'telefono', 'No registrado'))
+            ctk.CTkFrame(info_card, height=1, fg_color="#F1F5F9").pack(fill="x", padx=20, pady=5)
+            
+            create_info_row(info_card, "🏠", "Estado:", user.estado, is_badge=True)
+            
+            tipo_color = "#14532D" if user.tipoUsuario == "Propietario" else "#1E40AF"
+            row_t = ctk.CTkFrame(info_card, fg_color="transparent")
+            row_t.pack(fill="x", padx=25, pady=10)
+            ctk.CTkLabel(row_t, text="👤", font=("Arial", 18), text_color="#14532D", width=30).pack(side="left")
+            ctk.CTkLabel(row_t, text="Tipo:", font=("Inter", 14, "bold"), text_color="#1F2937").pack(side="left", padx=10)
+            ctk.CTkLabel(row_t, text=user.tipoUsuario, font=("Inter", 14, "bold"), text_color=tipo_color).pack(side="right")
+
+            # --- CLOSE BUTTON ---
+            btn_close = ctk.CTkButton(mf, text="✕  Cerrar", fg_color="#24A433", hover_color="#1A7B26", 
+                                      height=50, corner_radius=12, font=("Inter", 15, "bold"), 
+                                      command=ventana_detalles.destroy)
+            btn_close.pack(fill="x", padx=20, pady=20)
 
     def cargar_tabla():
 
@@ -1943,45 +2486,118 @@ def abrir_gestion_residentes(admin_obj):
 # ===========================
 
 def abrir_registro():
+    # Ventana rediseñada estilo premium (según referencia)
     ventana_menu.withdraw()
-    ventana_reg = ctk.CTkToplevel(ventana_principal)
+    ventana_reg = ctk.CTkToplevel()
     ventana_reg.title("Registro")
-    ventana_reg.geometry("400x550")
+    ventana_reg.geometry("500x700")
     ventana_reg.configure(fg_color=Color_fondo)
     ventana_reg.attributes("-topmost", True)
 
-    ctk.CTkLabel(ventana_reg, text="👥 Registro", font=("Arial", 28, "bold"), text_color=Color_texto_oscuro).pack(pady=20)
+    def cerrar_registro():
+        ventana_reg.destroy()
+        ventana_menu.deiconify()
+    
+    ventana_reg.protocol("WM_DELETE_WINDOW", cerrar_registro)
 
-    ctk.CTkLabel(ventana_reg, text="Tipo de Residente:", text_color="black").pack()
+    # Main Card
+    main_frame = ctk.CTkFrame(ventana_reg, fg_color="white", corner_radius=20)
+    main_frame.pack(fill="both", expand=True, padx=30, pady=30)
+
+    # --- HEADER ---
+    header = ctk.CTkFrame(main_frame, fg_color="#C9E2CD", corner_radius=20, height=120)
+    header.pack(fill="x", padx=10, pady=10)
+    header.pack_propagate(False)
+
+    icon_reg = cargar_icono("icono_registro.png")
+    if icon_reg:
+        icon_reg.configure(size=(60, 60))
+        ctk.CTkLabel(header, image=icon_reg, text="").pack(side="left", padx=25)
+    else:
+        ctk.CTkLabel(header, text="👥", font=("Arial", 40)).pack(side="left", padx=25)
+
+    title_txt = ctk.CTkFrame(header, fg_color="transparent")
+    title_txt.pack(side="left", pady=25)
+    ctk.CTkLabel(title_txt, text="Registro", font=("Inter", 24, "bold"), text_color="#14532D").pack(anchor="w")
+    ctk.CTkLabel(title_txt, text="Crear nuevo usuario", font=("Inter", 13), text_color="#365314").pack(anchor="w")
+
+    # --- CONTENIDO ---
+    content = ctk.CTkFrame(main_frame, fg_color="transparent")
+    content.pack(fill="both", expand=True, padx=25)
+
+    ctk.CTkLabel(content, text="Tipo de Residente", font=("Inter", 14, "bold"), text_color="#1F2937").pack(anchor="w", pady=(10, 15))
+
     tipo_var = ctk.StringVar(value="Propietario")
-    ctk.CTkRadioButton(ventana_reg, text="Propietario", variable=tipo_var, value="Propietario", text_color="black").pack(pady=5)
-    ctk.CTkRadioButton(ventana_reg, text="Inquilino", variable=tipo_var, value="Inquilino", text_color="black").pack(pady=5)
+    
+    types_f = ctk.CTkFrame(content, fg_color="transparent")
+    types_f.pack(fill="x", pady=5)
 
-    entry_nombre = ctk.CTkEntry(ventana_reg, placeholder_text="Nombre Completo", width=300, height=35, border_width=2, corner_radius=10)
-    entry_nombre.pack(pady=10)
-    entry_correo = ctk.CTkEntry(ventana_reg, placeholder_text="Correo electrónico", width=300, height=35, border_width=2, corner_radius=10)
-    entry_correo.pack(pady=10)
-    entry_pass = ctk.CTkEntry(ventana_reg, placeholder_text="Contraseña", show="*", width=300, height=35, border_width=2, corner_radius=10)
-    entry_pass.pack(pady=10)
+    def select_user_type(t):
+        tipo_var.set(t)
+        if t == "Propietario":
+            card_prop.configure(border_color="#14532D", border_width=2)
+            card_inq.configure(border_color="#E5E7EB", border_width=1)
+        else:
+            card_inq.configure(border_color="#14532D", border_width=2)
+            card_prop.configure(border_color="#E5E7EB", border_width=1)
+
+    card_prop = ctk.CTkFrame(types_f, fg_color="#F9FAFB", border_color="#14532D", border_width=2, height=100, corner_radius=12)
+    card_prop.pack(side="left", fill="both", expand=True, padx=(0, 5))
+    card_prop.pack_propagate(False)
+    card_prop.bind("<Button-1>", lambda e: select_user_type("Propietario"))
+    
+    icon_p = cargar_icono("icono_propietario.png") or cargar_icono("icono_usuario.png")
+    if icon_p: 
+        ctk.CTkLabel(card_prop, image=icon_p, text="").pack(pady=(15, 2))
+    ctk.CTkLabel(card_prop, text="Propietario", font=("Inter", 13, "bold"), text_color="#1F2937").pack()
+
+    card_inq = ctk.CTkFrame(types_f, fg_color="#F9FAFB", border_color="#E5E7EB", border_width=1, height=100, corner_radius=12)
+    card_inq.pack(side="left", fill="both", expand=True, padx=(5, 0))
+    card_inq.pack_propagate(False)
+    card_inq.bind("<Button-1>", lambda e: select_user_type("Inquilino"))
+    
+    icon_i = cargar_icono("icono_inquilino.png") or cargar_icono("icono_usuario.png")
+    if icon_i:
+        ctk.CTkLabel(card_inq, image=icon_i, text="").pack(pady=(15, 2))
+    ctk.CTkLabel(card_inq, text="Inquilino", font=("Inter", 13, "bold"), text_color="#1F2937").pack()
+
+    # Inputs con Iconos
+    def create_input_row(parent, placeholder, icon_char, show_char=None):
+        row = ctk.CTkFrame(parent, fg_color="#F9FAFB", height=50, corner_radius=10, border_width=1, border_color="#E5E7EB")
+        row.pack(fill="x", pady=8)
+        row.pack_propagate(False)
+        
+        ctk.CTkLabel(row, text=icon_char, font=("Arial", 18), text_color="gray", width=40).pack(side="left", padx=10)
+        ctk.CTkFrame(row, width=1, fg_color="#E5E7EB").pack(side="left", fill="y", pady=10)
+        
+        ent = ctk.CTkEntry(row, placeholder_text=placeholder, border_width=0, fg_color="transparent", 
+                           text_color="black", font=("Inter", 13))
+        ent.pack(side="left", fill="both", expand=True, padx=10)
+        if show_char: ent.configure(show=show_char)
+        return ent
+
+    entry_nombre = create_input_row(content, "Nombre Completo", "👤")
+    entry_correo = create_input_row(content, "Correo electrónico", "📧")
+    entry_pass   = create_input_row(content, "Contraseña", "🔒", show_char="*")
 
     def ejecutar_registro():
         nombre = entry_nombre.get()
         correo = entry_correo.get()
         password = entry_pass.get()
         tipo = tipo_var.get()
-        if nombre == "" or password == "" or correo == "":
-            print("Error: Campos vacíos")
+        if not (nombre and correo and password):
+            messagebox.showwarning("Atención", "Todos los campos son obligatorios")
             return
         usuario_creado = sistema_back.registroforAdmin(nombre, password, correo, tipo)
         if usuario_creado:
-            mostrar_exito()
+            mostrar_exito("Usuario registrado correctamente")
             ventana_reg.destroy()
             ventana_menu.deiconify()
         else:
-            print("El usuario ya existe.")
+            messagebox.showerror("Error", "El usuario ya existe")
 
-    ctk.CTkButton(ventana_reg, text="Acceso", fg_color=Color_boton_oscuro,
-                  command=ejecutar_registro).pack(pady=30)
+    ctk.CTkButton(content, text="→ Acceso", fg_color=Color_boton_oscuro, height=50, corner_radius=12,
+                  font=("Inter", 15, "bold"), command=ejecutar_registro).pack(fill="x", pady=25)
 
 #==============================================
 # Configuración de ventana principal
@@ -2033,12 +2649,19 @@ frame_botones.pack(expand=True)
 
 def cargar_icono(nombre_archivo):
     try:
-        carpeta_iconos = os.path.join(os.path.dirname(__file__), "iconos")
-        ruta = os.path.join(carpeta_iconos, nombre_archivo)
+        if os.path.isabs(nombre_archivo):
+            ruta = nombre_archivo
+        else:
+            carpeta_iconos = os.path.join(os.path.dirname(__file__), "iconos")
+            ruta = os.path.join(carpeta_iconos, nombre_archivo)
+        
+        if not os.path.exists(ruta):
+            return None
+            
         img = Image.open(ruta)
         return ctk.CTkImage(img, size=(30, 30))
-    except FileNotFoundError:
-        print(f"Error: El archivo '{nombre_archivo}' no se encontró en la carpeta ")
+    except Exception as e:
+        print(f"Error al cargar icono '{nombre_archivo}': {e}")
         return None
 
 icono_usuario  = cargar_icono("icono_usuario.png")

@@ -1,5 +1,6 @@
-﻿idServicio,nombre,tipo,tarifa
+idServicio,nombre,tipo,tarifa
 1,Agua,fijo,22111.0
 2,Luz,medido,1233.0
 3,Seguridad,medido,123.0
 4,Mantenimiento,medido,122.0
+5,Gas,medido,100.0

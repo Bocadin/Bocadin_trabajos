@@ -1,2 +1,5 @@
-idRecibo,usuario_id,total,estado,periodo
-1,1,22111.0,pendiente,
+idRecibo,usuario_id,total,estado,periodo,consumos_ids
+1,<backend.Residente object at 0x0000022A6D1B1BE0>,22111.0,pagado,,
+2,1,22111.0,pagado,,
+3,1,22111.0,pagado,,12
+4,1,268711.0,pagado,,13;14

@@ -219,7 +219,8 @@ class SistemaGestionResidentes:
                     u_id = row.get('usuario_id', row.get('casa_id', ''))
                     c = Consumo(row['idConsumo'], float(row['cantidad']),
                                 u_id, row['servicio_id'],
-                                row.get('fecha'), row.get('estado', 'pendiente'))
+                                row.get('fecha'), row.get('estado', 'pendiente'),
+                                float(row.get('lectura_actual', 0)))
                     self.consumos[c.idConsumo] = c
         except Exception as e:
             print(f"Error al cargar consumos: {e}")
@@ -244,12 +245,18 @@ class SistemaGestionResidentes:
             with open(self.archivo_recibos, mode='r', newline='', encoding='utf-8-sig') as f:
                 for row in csv.DictReader(f):
                     u_id = row['usuario_id']
-                    # Intentar vincular con el objeto usuario real
                     user_obj = self.usuarios.get(u_id, u_id) 
                     r = Recibo(row['idRecibo'], user_obj)
                     r.total_pagar = float(row.get('total', 0))
                     r.estado      = row.get('estado', 'pendiente')
                     r.periodo     = row.get('periodo', '')
+                    
+                    # Cargar IDs de consumos vinculados
+                    c_ids_str = row.get('consumos_ids', "")
+                    if c_ids_str:
+                        r.consumos_ids = c_ids_str.split(";")
+                        r.consumos = [self.consumos[cid] for cid in r.consumos_ids if cid in self.consumos]
+                    
                     self.recibos[r.idRecibo] = r
         except Exception as e:
             print(f"Error al cargar recibos: {e}")
@@ -322,13 +329,14 @@ class SistemaGestionResidentes:
     def guardar_consumos_csv(self):
         try:
             with open(self.archivo_consumos, mode='w', newline='', encoding='utf-8') as f:
-                campos = ['idConsumo', 'cantidad', 'fecha', 'servicio_id', 'usuario_id', 'estado']
+                campos = ['idConsumo', 'cantidad', 'fecha', 'servicio_id', 'usuario_id', 'estado', 'lectura_actual']
                 writer = csv.DictWriter(f, fieldnames=campos)
                 writer.writeheader()
                 for c in self.consumos.values():
                     writer.writerow({'idConsumo': c.idConsumo, 'cantidad': c.cantidad,
                                      'fecha': c.fecha, 'servicio_id': c.servicio_id,
-                                     'usuario_id': c.usuario_id, 'estado': c.estado})
+                                     'usuario_id': c.usuario_id, 'estado': c.estado,
+                                     'lectura_actual': getattr(c, 'lectura_actual', 0)})
             return True
         except Exception as e:
             print(f"Error al sincronizar consumos: {e}")
@@ -352,13 +360,20 @@ class SistemaGestionResidentes:
     def guardar_recibos_csv(self):
         try:
             with open(self.archivo_recibos, mode='w', newline='', encoding='utf-8') as f:
-                campos = ['idRecibo', 'usuario_id', 'total', 'estado', 'periodo']
+                campos = ['idRecibo', 'usuario_id', 'total', 'estado', 'periodo', 'consumos_ids']
                 writer = csv.DictWriter(f, fieldnames=campos)
                 writer.writeheader()
                 for r in self.recibos.values():
-                    writer.writerow({'idRecibo': r.idRecibo, 'usuario_id': r.usuario,
-                                     'total': r.total_pagar, 'estado': r.estado,
-                                     'periodo': getattr(r, 'periodo', '')})
+                    u_id = getattr(r.usuario, 'idUsuario', r.usuario)
+                    c_ids = ";".join(getattr(r, 'consumos_ids', []))
+                    writer.writerow({
+                        'idRecibo': r.idRecibo, 
+                        'usuario_id': u_id,
+                        'total': r.total_pagar, 
+                        'estado': r.estado,
+                        'periodo': r.periodo,
+                        'consumos_ids': c_ids
+                    })
             return True
         except Exception as e:
             print(f"Error al sincronizar recibos: {e}")
@@ -466,13 +481,25 @@ class SistemaGestionResidentes:
         return False
 
     # Gestión de consumos
-    def registrar_consumo(self, cantidad, usuario_id, servicio_id, fecha=None):
+    def registrar_consumo(self, cantidad, usuario_id, servicio_id, fecha=None, lectura_actual=0):
         ids = [int(c.idConsumo) for c in self.consumos.values() if str(c.idConsumo).isdigit()]
         nuevo_id = str(max(ids, default=0) + 1)
-        c = Consumo(nuevo_id, float(cantidad), usuario_id, servicio_id, fecha, "pendiente")
+        c = Consumo(nuevo_id, float(cantidad), usuario_id, servicio_id, fecha, "pendiente", lectura_actual)
         self.consumos[nuevo_id] = c
         self.guardar_consumos_csv()
         return c
+
+    def obtener_ultima_lectura(self, usuario_id, servicio_id):
+        # Buscar el consumo más reciente para este par usuario-servicio con comparación robusta
+        u_id_str = str(usuario_id)
+        s_id_str = str(servicio_id)
+        c_list = [c for c in self.consumos.values() if str(c.usuario_id) == u_id_str and str(c.servicio_id) == s_id_str]
+        
+        if not c_list:
+            return 0.0
+        # Ordenar por ID asumiendo incrementalidad
+        ultimo = max(c_list, key=lambda x: int(x.idConsumo))
+        return float(getattr(ultimo, 'lectura_actual', 0.0))
 
     def marcar_consumo_pagado(self, idConsumo):
         if idConsumo in self.consumos:
@@ -489,14 +516,41 @@ class SistemaGestionResidentes:
         return False
 
     # Gestión de recibos
-    def generar_recibo(self, usuario_id, periodo, total):
+    def generar_recibo(self, usuario_id, periodo, total, consumos_ids=None):
         ids = [int(r.idRecibo) for r in self.recibos.values() if str(r.idRecibo).isdigit()]
         nuevo_id = str(max(ids, default=0) + 1)
-        r = Recibo(nuevo_id, usuario_id, periodo)
+        
+        # Vincular con el objeto usuario real si es posible
+        user_obj = self.usuarios.get(usuario_id, usuario_id)
+        r = Recibo(nuevo_id, user_obj, periodo)
         r.total_pagar = total
+        
+        if consumos_ids:
+            r.consumos_ids = consumos_ids
+            # Vincular objetos de consumo en memoria
+            r.consumos = [self.consumos[cid] for cid in consumos_ids if cid in self.consumos]
+            
         self.recibos[nuevo_id] = r
         self.guardar_recibos_csv()
         return r
+
+    def pagar_recibo(self, id_recibo):
+        if id_recibo in self.recibos:
+            rec = self.recibos[id_recibo]
+            rec.estado = "pagado"
+            # También marcar sus consumos como pagados
+            for c_id in getattr(rec, 'consumos_ids', []):
+                if c_id in self.consumos:
+                    self.consumos[c_id].estado = "pagado"
+            
+            # Si no tiene consumos_ids pero tiene consumos en memoria (por carga reciente)
+            for c in rec.consumos:
+                c.estado = "pagado"
+                
+            self.guardar_recibos_csv()
+            self.guardar_consumos_csv()
+            return True
+        return False
 
     #Gestión de casas
     def crear_casa(self, numero, propietario_id="", inquilino_id=""):
@@ -582,13 +636,14 @@ class Servicio:
 
 class Consumo:
     def __init__(self, idConsumo, cantidad, usuario_id, servicio_id,
-                 fecha=None, estado="pendiente"):
+                 fecha=None, estado="pendiente", lectura_actual=0):
         self.idConsumo   = idConsumo
         self.cantidad    = cantidad
         self.usuario_id  = usuario_id
         self.servicio_id = servicio_id
         self.fecha       = fecha if fecha else datetime.now().strftime("%Y-%m-%d")
         self.estado      = estado
+        self.lectura_actual = lectura_actual
 
     def total(self, sistema):
         #Calcula el total del consumo usando la tarifa del servicio asociado.
@@ -602,6 +657,7 @@ class Recibo:
         self.idRecibo    = idRecibo
         self.usuario     = usuario
         self.consumos    = []
+        self.consumos_ids = []
         self.total_pagar = 0
         self.estado      = "pendiente"
         self.periodo     = periodo
