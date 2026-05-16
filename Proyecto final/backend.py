@@ -246,10 +246,10 @@ class SistemaGestionResidentes:
                 for row in csv.DictReader(f):
                     u_id = row['usuario_id']
                     user_obj = self.usuarios.get(u_id, u_id) 
-                    r = Recibo(row['idRecibo'], user_obj)
+                    r = Recibo(row['idRecibo'], user_obj, row.get('periodo', ""))
                     r.total_pagar = float(row.get('total', 0))
                     r.estado      = row.get('estado', 'pendiente')
-                    r.periodo     = row.get('periodo', '')
+                    r.fecha       = row.get('fecha', datetime.now().strftime("%Y-%m-%d"))
                     
                     # Cargar IDs de consumos vinculados
                     c_ids_str = row.get('consumos_ids', "")
@@ -360,19 +360,19 @@ class SistemaGestionResidentes:
     def guardar_recibos_csv(self):
         try:
             with open(self.archivo_recibos, mode='w', newline='', encoding='utf-8') as f:
-                campos = ['idRecibo', 'usuario_id', 'total', 'estado', 'periodo', 'consumos_ids']
-                writer = csv.DictWriter(f, fieldnames=campos)
+                fieldnames = ['idRecibo', 'usuario_id', 'periodo', 'total', 'estado', 'consumos_ids', 'fecha']
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
                 for r in self.recibos.values():
-                    u_id = getattr(r.usuario, 'idUsuario', r.usuario)
-                    c_ids = ";".join(getattr(r, 'consumos_ids', []))
+                    u_id = r.usuario.idUsuario if hasattr(r.usuario, 'idUsuario') else r.usuario
                     writer.writerow({
-                        'idRecibo': r.idRecibo, 
-                        'usuario_id': u_id,
-                        'total': r.total_pagar, 
-                        'estado': r.estado,
-                        'periodo': r.periodo,
-                        'consumos_ids': c_ids
+                        'idRecibo':    r.idRecibo,
+                        'usuario_id':  u_id,
+                        'periodo':     r.periodo,
+                        'total':       r.total_pagar,
+                        'estado':      r.estado,
+                        'consumos_ids': ";".join(getattr(r, 'consumos_ids', [])),
+                        'fecha':       getattr(r, 'fecha', datetime.now().strftime("%Y-%m-%d"))
                     })
             return True
         except Exception as e:
@@ -516,7 +516,7 @@ class SistemaGestionResidentes:
         return False
 
     # Gestión de recibos
-    def generar_recibo(self, usuario_id, periodo, total, consumos_ids=None):
+    def generar_recibo(self, usuario_id, periodo, total, consumos_ids=None, fecha=None):
         ids = [int(r.idRecibo) for r in self.recibos.values() if str(r.idRecibo).isdigit()]
         nuevo_id = str(max(ids, default=0) + 1)
         
@@ -524,6 +524,7 @@ class SistemaGestionResidentes:
         user_obj = self.usuarios.get(usuario_id, usuario_id)
         r = Recibo(nuevo_id, user_obj, periodo)
         r.total_pagar = total
+        r.fecha = fecha if fecha else datetime.now().strftime("%Y-%m-%d")
         
         if consumos_ids:
             r.consumos_ids = consumos_ids
@@ -661,6 +662,7 @@ class Recibo:
         self.total_pagar = 0
         self.estado      = "pendiente"
         self.periodo     = periodo
+        self.fecha       = datetime.now().strftime("%Y-%m-%d")
 
     def agregar_consumo(self, consumo):
         self.consumos.append(consumo)

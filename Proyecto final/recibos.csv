@@ -1,5 +1,7 @@
-idRecibo,usuario_id,total,estado,periodo,consumos_ids
-1,<backend.Residente object at 0x0000022A6D1B1BE0>,22111.0,pagado,,
-2,1,22111.0,pagado,,
-3,1,22111.0,pagado,,12
-4,1,268711.0,pagado,,13;14
+idRecibo,usuario_id,periodo,total,estado,consumos_ids,fecha
+1,<backend.Residente object at 0x0000022A6D1B1BE0>,,22111.0,pagado,,2026-05-15
+2,1,,22111.0,pagado,,2026-05-15
+3,1,,22111.0,pagado,12,2026-05-15
+4,1,,268711.0,pagado,13;14,2026-05-15
+5,varios,15 de mayo de 2026,22111.0,pendiente,15,2026-05-15
+6,1,15 de mayo de 2026,22111.0,pendiente,17,2026-05-15

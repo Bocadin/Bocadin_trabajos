@@ -1,7 +1,3 @@
-﻿idReporte,usuario_id,titulo,tipo,descripcion,fecha,prioridad,estado,foto1,foto2,foto3,nombre_reporta
-12A,101,Reporte de Mantenimiento #12A,Mantenimiento,Se requiere reparaciÃÂ³n de tuberÃÂ­a en el sÃÂ³tano.,2024-05-15,Alto,Pendiente,,,,101
+idReporte,usuario_id,titulo,tipo,descripcion,fecha,prioridad,estado,foto1,foto2,foto3,nombre_reporta
 12B,102,Solicitud de Limpieza #12A,Limpieza,Limpieza profunda del salÃÂ³n de eventos.,2024-05-16,Alto,Pendiente,,,,102
-12C,103,Problema de Seguridad #12A,Seguridad,CÃÂ¡mara de seguridad del pasillo B no funciona.,2024-05-17,Alto,Pendiente,,,,103
-12D,104,Entrega de Paquete #12C,Entrega de Paquete,Paquete frÃÂ¡gil recibido en recepciÃÂ³n.,2024-05-18,Alto,Pendiente,,,,104
-16B,105,Reserva de ÃÂrea ComÃÂºn #16B,Reserva de ÃÂrea ComÃÂºn,Reserva confirmada para parrillada.,2024-05-15,Alto,Pendiente,,,,105
 17A,1,Falla en lÃÂ¡mpara,Mantenimiento,La lÃÂ¡mpara de la calle de las nives en la esquina cerca del banco ya no funciona y por las noches no se logra ver por la zona,2026-05-13,Media,En Proceso,c:\Users\LATITUDE 5550\OneDrive\Documentos\poo\Git hub\Bocadin_trabajos\Proyecto final\evidencias_reportes\rep_1_0_20260513181148_alley-89197_1280.jpg,,,1
