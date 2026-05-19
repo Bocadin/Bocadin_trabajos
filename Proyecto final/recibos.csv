@@ -5,3 +5,4 @@ idRecibo,usuario_id,periodo,total,estado,consumos_ids,fecha
 4,1,,268711.0,pagado,13;14,2026-05-15
 5,varios,15 de mayo de 2026,22111.0,pendiente,15,2026-05-15
 6,1,15 de mayo de 2026,22111.0,pendiente,17,2026-05-15
+7,varios,18 de mayo de 2026,100.0,pendiente,19,2026-05-18

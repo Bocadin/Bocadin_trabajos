@@ -18,7 +18,7 @@ class Usuario:
         self.foto_perfil = foto_perfil
 
     def iniciarSesion(self, sistema, contraseña):
-        #Verifica credenciales y retorna el usuario si son válidas.
+        # Valida las credenciales ingresadas y retorna la instancia del Usuario si el acceso es exitoso.
         if self.contraseña == contraseña and self.estado == "activo":
             return self
         return None
@@ -67,9 +67,8 @@ class Residente(Usuario):
             return pago
         return None
 
-    #PRUEBA DE FUNCIÓN PARA USUARIO PARA MOSTRAR PAGO
     def obtener_informacion_pago(self, sistema):
-        # Buscar consumos pendientes
+        # Filtra las instancias de Consumo relacionadas a este Residente que aún se encuentren en estado pendiente.
         consumos_pendientes = [c for c in sistema.consumos.values() if c.usuario_id == self.idUsuario and c.estado == "pendiente"]
         total_pendiente = sum(c.total(sistema) for c in consumos_pendientes)
 
@@ -94,7 +93,7 @@ class Administrador(Usuario):
         )
 
     def activar_usuario(self, sistema, id_usuario, nombre_real, direccion, telefono):
-        #Completa los datos del residente y le da acceso total.
+        # Actualiza los atributos del objeto Usuario para otorgarle acceso activo al sistema.
         if id_usuario in sistema.usuarios:
             user = sistema.usuarios[id_usuario]
             user.nombre_completo = nombre_real
@@ -108,7 +107,7 @@ class Administrador(Usuario):
 
 class SistemaGestionResidentes:
 
-    # Inicialización 
+    # Constructor de la clase: Inicializa las colecciones y procede con la carga inicial de datos.
     def __init__(self):
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.archivo_usuarios  = os.path.join(base_dir, "usuarios.csv")
@@ -133,16 +132,16 @@ class SistemaGestionResidentes:
         self.cargar_recibos()
         self.cargar_reportes()
 
-    # Helpers de carga
+    # Métodos auxiliares para instanciar objetos a partir de registros CSV
     def _instanciar_usuario(self, row):
         tipo = row.get('tipoUsuario', 'residente')
         foto_perfil = row.get('foto_perfil')
         base_dir = os.path.dirname(os.path.abspath(__file__))
         if foto_perfil and not os.path.isabs(foto_perfil):
-            # Solo convertimos a absoluta si no es una cadena vacía o nula
+            # Convierte rutas relativas a absolutas para asegurar que el activo pueda ser cargado por el frontend.
             foto_perfil = os.path.join(base_dir, foto_perfil)
 
-        # Si sigue siendo vacío y es admin, le ponemos el icono por defecto
+        # Asigna el icono predeterminado si el Administrador no cuenta con una imagen definida.
         if not foto_perfil and tipo == "admin":
             foto_perfil = os.path.join(base_dir, "admin_icon.png")
 
@@ -158,7 +157,7 @@ class SistemaGestionResidentes:
             foto_perfil     = foto_perfil,
         )
         if tipo == "admin":
-            # Instanciar como Administrador para que tenga todos sus métodos
+            # Instancia un objeto Administrador con los privilegios correspondientes.
             u = Administrador(
                 idUsuario  = kwargs["idUsuario"],
                 Username   = kwargs["Username"],
@@ -166,17 +165,17 @@ class SistemaGestionResidentes:
                 correo     = kwargs["correo"],
                 foto_perfil= kwargs.get("foto_perfil"),
             )
-            # Preservar campos adicionales que vengan del CSV
+            # Asigna atributos adicionales extraídos desde la persistencia de datos.
             u.nombre_completo = kwargs.get("nombre_completo", "Administrador")
             u.direccion       = kwargs.get("direccion", "Oficina Central")
             u.telefono        = kwargs.get("telefono", "0000000000")
             u.estado          = kwargs.get("estado", "activo")
         else:
-            # propietario / inquilino / residente → instancia Residente
+            # Crea una instancia de Residente según el rol (propietario, inquilino, etc.) aplicando herencia.
             u = Residente(tipoResidente=tipo, **kwargs)
         return u
 
-    # Carga de datos
+    # Métodos para la carga de datos (Rehidratación de objetos)
     def cargar_usuarios(self):
         if not os.path.exists(self.archivo_usuarios):
             return
@@ -251,7 +250,7 @@ class SistemaGestionResidentes:
                     r.estado      = row.get('estado', 'pendiente')
                     r.fecha       = row.get('fecha', datetime.now().strftime("%Y-%m-%d"))
                     
-                    # Cargar IDs de consumos vinculados
+                    # Inicializa la relación de agregación entre el Recibo y los Consumos correspondientes.
                     c_ids_str = row.get('consumos_ids', "")
                     if c_ids_str:
                         r.consumos_ids = c_ids_str.split(";")
@@ -285,9 +284,9 @@ class SistemaGestionResidentes:
         except Exception as e:
             print(f"Error al cargar reportes: {e}")
 
-    # Guardado de datos
+    # Métodos de persistencia de datos
     def guardar_csv_nuevo(self):
-        #Reescribe usuarios.csv con el estado actual en memoria.
+        # Sincroniza el estado actual de los objetos Usuario en memoria hacia la persistencia física (CSV).
         try:
             campos = ['idUsuario', 'Username', 'contraseña', 'tipoUsuario', 'correo',
                       'nombre_completo', 'direccion', 'telefono', 'estado', 'foto_perfil']
@@ -405,9 +404,9 @@ class SistemaGestionResidentes:
             print(f"Error al sincronizar reportes: {e}")
             return False
 
-    #Gestión de usuarios
+    # Métodos de negocio: Gestión de Usuarios
     def registroforAdmin(self, Username, contraseña, correo, tipoResidente="residente"):
-        # Verificar duplicado de username
+        # Verifica que el Username y correo no colisionen con instancias existentes.
         for u in self.usuarios.values():
             if u.Username == Username and u.correo == correo:
                 return "error_duplicado"
@@ -490,14 +489,14 @@ class SistemaGestionResidentes:
         return c
 
     def obtener_ultima_lectura(self, usuario_id, servicio_id):
-        # Buscar el consumo más reciente para este par usuario-servicio con comparación robusta
+        # Recupera la instancia de Consumo más reciente para un Usuario y Servicio específicos.
         u_id_str = str(usuario_id)
         s_id_str = str(servicio_id)
         c_list = [c for c in self.consumos.values() if str(c.usuario_id) == u_id_str and str(c.servicio_id) == s_id_str]
         
         if not c_list:
             return 0.0
-        # Ordenar por ID asumiendo incrementalidad
+        # Determina la última lectura utilizando el ID como factor incremental.
         ultimo = max(c_list, key=lambda x: int(x.idConsumo))
         return float(getattr(ultimo, 'lectura_actual', 0.0))
 
@@ -515,12 +514,12 @@ class SistemaGestionResidentes:
             return True
         return False
 
-    # Gestión de recibos
+    # Métodos de negocio: Gestión de Recibos
     def generar_recibo(self, usuario_id, periodo, total, consumos_ids=None, fecha=None):
         ids = [int(r.idRecibo) for r in self.recibos.values() if str(r.idRecibo).isdigit()]
         nuevo_id = str(max(ids, default=0) + 1)
         
-        # Vincular con el objeto usuario real si es posible
+        # Asocia el objeto Usuario real al Recibo para mantener la relación de composición.
         user_obj = self.usuarios.get(usuario_id, usuario_id)
         r = Recibo(nuevo_id, user_obj, periodo)
         r.total_pagar = total
@@ -528,7 +527,7 @@ class SistemaGestionResidentes:
         
         if consumos_ids:
             r.consumos_ids = consumos_ids
-            # Vincular objetos de consumo en memoria
+            # Vincula los objetos Consumo en memoria mediante agregación al nuevo Recibo.
             r.consumos = [self.consumos[cid] for cid in consumos_ids if cid in self.consumos]
             
         self.recibos[nuevo_id] = r
@@ -539,12 +538,12 @@ class SistemaGestionResidentes:
         if id_recibo in self.recibos:
             rec = self.recibos[id_recibo]
             rec.estado = "pagado"
-            # También marcar sus consumos como pagados
+            # Propaga el cambio de estado (pagado) a todos los objetos Consumo agregados.
             for c_id in getattr(rec, 'consumos_ids', []):
                 if c_id in self.consumos:
                     self.consumos[c_id].estado = "pagado"
             
-            # Si no tiene consumos_ids pero tiene consumos en memoria (por carga reciente)
+            # Asegura la propagación del estado incluso para instancias recientes en memoria.
             for c in rec.consumos:
                 c.estado = "pagado"
                 
@@ -564,10 +563,10 @@ class SistemaGestionResidentes:
         self.guardar_casas_csv()
         return c
 
-    # Gestión de reportes
+    # Métodos de negocio: Gestión de Reportes
     def crear_reporte(self, usuario_id, titulo, tipo, descripcion, prioridad="Media", foto1="", foto2="", foto3="", nombre_reporta=""):
         import re
-        # Extraer solo los números del ID (ej: #12A -> 12)
+        # Extrae el componente numérico del identificador para continuar la secuencia lógica.
         ids = []
         for r in self.reportes.values():
             match = re.search(r'(\d+)', r.idReporte)
@@ -631,7 +630,7 @@ class Servicio:
         self.tarifa     = tarifa
 
     def calcular_costo(self, cantidad):
-        #Calcula el costo según la cantidad consumida y la tarifa del servicio.
+        # Calcula el costo base del servicio multiplicando la cantidad por la tarifa propia.
         return cantidad * self.tarifa
 
 
@@ -647,7 +646,7 @@ class Consumo:
         self.lectura_actual = lectura_actual
 
     def total(self, sistema):
-        #Calcula el total del consumo usando la tarifa del servicio asociado.
+        # Delega el cálculo monetario al objeto Servicio asociado (Polimorfismo / Colaboración).
         if self.servicio_id in sistema.servicios:
             return sistema.servicios[self.servicio_id].calcular_costo(self.cantidad)
         return 0
@@ -668,12 +667,12 @@ class Recibo:
         self.consumos.append(consumo)
 
     def calcular_total(self, sistema):
-        #Recalcula el total sumando todos los consumos vinculados al recibo.
+        # Itera sobre la colección de objetos Consumo para consolidar el monto total.
         self.total_pagar = sum(c.total(sistema) for c in self.consumos)
         return self.total_pagar
 
     def pagar(self):
-        #Marca el recibo como pagado.
+        # Modifica el estado interno del objeto indicando su liquidación.
         self.estado = "pagado"
 
 
@@ -685,14 +684,13 @@ class Pago:
         self.estado    = "realizado"
 
     def proceso_pago(self):
-        # Valida que el recibo esté pendiente, lo marca pagado y confirma el pago.
-        # Retorna True si se procesó correctamente, False si ya estaba pagado.
+        # Interacciona con el objeto Recibo para procesar la transacción y actualizar ambos estados.
         if self.recibo.estado == "pendiente":
             self.recibo.pagar()
             self.estado    = "realizado"
             self.fechaPago = datetime.now()
             return True
-        # El recibo ya fue pagado anteriormente
+        # Asigna un estado rechazado si el objeto Recibo subyacente ya fue liquidado.
         self.estado = "rechazado"
         return False
 
